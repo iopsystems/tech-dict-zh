@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta name="generator" content="Hexo 6.3.0">
+  <meta charset="utf-8">
+  
+  <link rel="icon" href="/images/favicon.ico">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://cdn.jsdelivr.net'>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>基于开源的全栈全链路可观测性建设实践 - 云原生-可观测性-零侵扰采集-全栈可观测-分布式追踪-eBPF-Wasm-DeepFlow可观测性平台</title>
+
+  
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-MWF4JM5L');</script>
+    <!-- End Google Tag Manager -->
+  <script src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/js/1667631104e8f473583e39eaa185d646_20241106113025.js"></script>
+  <script src="https://hm.baidu.com/hm.js?3e3f3efa66cd1294124f889274d3105f"></script>
+
+  
+    <meta name="description" content="基于 DeepFlow 的高度自动化特性，结合丰富的开源生态，本文从 Metrics 和 Tracing 两个方面介绍怎样从自动化走向精细化，一步步构建全栈、全链路的可观测性协作平台。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="#DeepFlow 基于开源的全栈全链路可观测性建设实践">
+<meta property="og:url" content="https://www.deepflow.io/blog/zh/006-build-observability-platorm-based-on-open-source-components/index.html">
+<link rel="canonical" href="https://www.deepflow.io/blog/zh/006-build-observability-platorm-based-on-open-source-components/index.html">
+<meta property="og:site_name" content="DeepFlow">
+<meta property="og:description" content="基于 DeepFlow 的高度自动化特性，结合丰富的开源生态，本文从 Metrics 和 Tracing 两个方面介绍怎样从自动化走向精细化，一步步构建全栈、全链路的可观测性协作平台。">
+<meta property="og:locale">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630858967e210.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855db051dc.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855dc200a7.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855e0dbf69.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085654dd44f.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308565692cd7.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308565993b96.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308569a9c947.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856a3031ce.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856a3dc851.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f4b6428.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f59c2ba.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f66743a.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573b18a09.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573732015.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573d4dea3.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308579a64795.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085798c4d6b.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085799986cc.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857df31f9f.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857e01dd3c.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857e0c95bd.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308582e677e9.png">
+<meta property="og:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308582d98465.png">
+<meta property="article:published_time" content="2022-08-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-23T02:36:35.009Z">
+<meta property="article:author" content="DeepFlow">
+<meta property="article:tag" content="AutoTracing">
+<meta property="article:tag" content="演讲实录">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630858967e210.png">
+<meta name="twitter:image" content="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855db051dc.png">
+  
+  <meta name="description" content="基于 DeepFlow 的高度自动化特性，结合丰富的开源生态，本文从 Metrics 和 Tracing 两个方面介绍怎样从自动化走向精细化，一步步构建全栈、全链路的可观测性协作平台。">
+  <meta name="Keywords" content="云原生,可观测性,零侵扰采集,全栈可观测,全链路追踪,分布式追踪,服务全景图、eBPF,Wasm,DeepFlow可观测性平台">
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/blog/css/main.css?v=2023-10-11.css">
+
+  
+
+  
+<script src="/blog/js/jquery.min.js" async></script>
+
+  
+<link rel="stylesheet" href="/blog/lib/css/all.min.css">
+
+
+  
+
+  
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7MK4F9G6SR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7MK4F9G6SR');
+</script>
+  <body>
+    
+    
+
+
+
+
+      <div class="logo-login-container mobile">
+        <div class="flex-y">
+          <img class="logo-image" src="https://www.deepflow.io/images/V3/logo.svg" alt="logo" />
+          <div class="blank"></div>
+          <div class="github flex">
+            <a class="github-icon flex" href="https://github.com/deepflowio/deepflow" target="_blank">
+              <img src="https://www.deepflow.io/images/V3/github-2.svg"  alt="github-icon" />
+            </a>
+            <a class="github-stars" href="https://github.com/deepflowio/deepflow" target="_blank">
+              ***
+            </a>
+          </div>
+          <div class="lang">
+            <img src="https://www.deepflow.io/docs/img/lang.svg" alt="" />
+            <div class="intl-options-wrapper">
+              <ul class="intl-options">
+                <li v-for="item in langList" :key="item.prefix">
+                  <a href="javascript:void(0)" data-prefix="/zh/" data-type="zh" class="lang-a active">简体中文</a>
+                  <a href="javascript:void(0)" data-prefix="/" data-type="en" class="lang-a">English</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <ul class="button-list flex-y">
+            <li class="color-nomal nav-button" id="nav">
+              <img src="https://www.deepflow.io/images/V3/mobile/nav.svg" alt="nav.png" />
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="logo-login-container web">
+        <div class="flex-y">
+          <div class="log-image-box">
+            <img class="logo-image" src="https://www.deepflow.io/images/V3/logo.svg" alt="logo" />
+          </div>
+          <div class="blank"></div>
+          <ul class="feature-list font-nomal flex-y">
+            <li class="feature-item" data-name="deepflow-cloud">
+              <span>
+                产品
+              </span>
+            </li>
+            <li class="feature-item" data-name="agent">
+              <span>
+                智能体
+              </span>
+            </li>
+            <li
+              class="feature-item "
+              data-name="eBPF">
+              <span>
+                eBPF
+              </span>
+            </li>
+            <li class="feature-item" data-name="docs">
+              <span>
+                文档
+              </span>
+            </li>
+            <li
+              class="feature-item active"
+              data-name="blog">
+              <span>
+                博客
+              </span>
+            </li>
+            <li class="feature-item" data-name="auth">
+              <span>
+                认证
+              </span>
+            </li>
+          </ul>
+          <div class="blank"></div>
+          <div class="github flex">
+              <a class="github-icon flex" href="https://github.com/deepflowio/deepflow" target="_blank">
+                  <img src="https://www.deepflow.io/images/V3/github-2.svg" alt="github-icon" />
+              </a>
+              <a class="github-stars" id="github-stars" href="https://github.com/deepflowio/deepflow"
+                  target="_blank">
+              </a>
+          </div>
+          <div class="lang"><img src="https://www.deepflow.io/docs/img/lang.svg" alt="lang">
+              <div class="intl-options-wrapper">
+                  <ul class="intl-options">
+                      <li><a href="javascript:void(0)" data-prefix="/zh/" data-type="zh" class="lang-a active">简体中文</a>
+                      </li>
+                      <li><a href="javascript:void(0)" data-prefix="/" data-type="en" class="lang-a">English</a>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+          <div class="site-nav-right">
+            <div class="toggle popup-trigger">
+              
+                <i class="fa fa-search fa-fw fa-lg"></i>
+                
+            </div>
+          </div>
+        </div>
+        <div class="option-box"></div>
+      </div>
+      <div class="top-blank"></div>
+      <div class="l_body reversal" id="start">
+        
+          <aside class="l_left is_post" layout="post">
+            <div class="page-detail-left">
+              
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x0-%E4%BB%8E%E5%BF%83%E7%A2%8E%E5%88%B0%E5%B8%8C%E6%9C%9B"><span class="toc-text">0x0: 从心碎到希望</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x1-%E6%9E%84%E5%BB%BA%E5%85%A8%E6%A0%88-Metrics-%E4%BD%93%E7%B3%BB"><span class="toc-text">0x1: 构建全栈 Metrics 体系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x2-%E6%9E%84%E5%BB%BA%E6%97%A0%E7%9B%B2%E7%82%B9%E7%9A%84-Tracing-%E8%83%BD%E5%8A%9B"><span class="toc-text">0x2: 构建无盲点的 Tracing 能力</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x3-%E8%B5%8B%E8%83%BD-NewOps"><span class="toc-text">0x3: 赋能 NewOps</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x4-%E4%BB%80%E4%B9%88%E6%98%AF-DeepFlow"><span class="toc-text">0x4: 什么是 DeepFlow</span></a></li></ol></div></div></div>
+
+
+</div>
+
+
+              
+                <div class="share-box">
+    <!-- url text -->
+    <a href="javascript:void(0)" data-href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&text=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到twitter" class="other-link"><img class="no-zoom" src="/blog/images/twitter.png" alt="twitter icon"></a>
+    <a href="javascript:void(0)" data-href="https://reddit.com/submit?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&title=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到reddit" class="other-link"><img class="no-zoom"  src="/blog/images/reddit.png" alt="reddit icon"></a>
+    <a href="javascript:void(0)" data-href="https://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&t=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到facebook" class="other-link"><img class="no-zoom"  src="/blog/images/facebook.png" alt="facebook icon"></a>
+    <a href="javascript:void(0)" data-href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&t=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到ycombinator" class="other-link"><img class="no-zoom"  src="/blog/images/ycombinator.png" alt="hackernews icon"></a>
+    <a href="javascript:void(0)" data-href="https://service.weibo.com/share/share.php?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&title=%23DeepFlow%23%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5&language=zh_cn" target="_blank" rel="noopener noreferrer" class="other-link" title="分享到微博"><img class="no-zoom"  src="/blog/images/weibo.png" alt="weibo icon"></a>
+</div>
+
+
+              
+            </div>
+          </aside>
+        
+        <div class="l_main">
+          
+<article class='content md post'>
+<h1 class="article-title"><span>基于开源的全栈全链路可观测性建设实践</span></h1>
+<span class="blog-time">
+  
+    <span class="author" title="author"> 向阳 </span>
+  
+  <span class="time"> 2022-08-26 </span>
+  
+    <span id="/blog/zh/006-build-observability-platorm-based-on-open-source-components/" class="post-meta-item leancloud_visitors" data-flag-title="基于开源的全栈全链路可观测性建设实践" title="基于开源的全栈全链路可观测性建设实践">
+      <span class="post-meta-item-text"> 阅读:</span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+  
+ <div class="attribute-box">
+  
+    <div class="tags ys-post-tags">
+      
+        <a class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','AutoTracing', '/blog/zh/006-build-observability-platorm-based-on-open-source-components/')})(event)" title="AutoTracing">AutoTracing</a>
+        
+        <a class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','演讲实录', '/blog/zh/006-build-observability-platorm-based-on-open-source-components/')})(event)" title="演讲实录">演讲实录</a>
+        
+      </div>
+      
+    </div>
+</span>
+<html><head></head><body><p>本文是作者在 2022 GOPS 全球运维大会深圳站的演讲实录。<a target="_blank" rel="noopener" href="http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/pdf/ea0e4b6ebd97dda7b399f0197997358f_20220826140446.pdf">PPT 下载</a>。</p>
+<p>大家好，我是云杉网络向阳。我们刚刚开源了 DeepFlow，它是一个高度自动化的可观测性协作平台。DeepFlow 已经有六年历史了，基于我们的实战经验，今天我将围绕开源生态，和大家一起分享一种可观测性平台建设的成功之道。</p>
+<p>首先我会从经常发生在大家工作中的典型故事出发，谈一谈可观测性建设面临的困难。之后，由于时间限制，今天我主要会从 Metrics 和 Tracing 两个方面来展开谈一谈，介绍怎样<strong>从自动化走向精细化，从首战告捷到节节胜利</strong>，一步步构建完整的可观测性能力。最后作为一个总结，我会分享 DeepFlow 在我们的客户以及社区中的落地案例，相信它会是在座各位成长为新一代运维人 —— <strong>NewOps</strong> 的一个趁手武器，使用它为自己的组织量身打造一个可观测性产品，为开发团队提供优质的可观测性自助服务。</p>
+<h2 id="0x0-从心碎到希望"><a href="#0x0-从心碎到希望" class="headerlink" title="0x0: 从心碎到希望"></a>0x0: 从心碎到希望</h2><p>我相信这会是大家经常经历的一个心碎故事。由于业务团队需要响应大量的业务需求，通常会将业务稳定性保障的工作交给 SRE。两个团队的摩擦通常会从业务交接的那一刻开始，SRE 需要开发暴露完整的性能指标，但开发疲于应对业务需求总会打一些折扣。另一方面开发认为 SRE 只会接告警，就像一个透明管道，最终的排查还是要自己上，而且还会时不时被卡上线。而经常发生的故障也会让 SRE 失去耐心，认为开发没有做好测试，自己是擦屁股角色。两个团队的矛盾越积越深。因此，在 Google 的 SRE 理念提出 19 年之后的今天，我们也逐渐开始听到了一些思考的声音，大家开始讨论<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/554118190">我们还需要 SRE 吗？</a>。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855db051dc.png" alt="DEV 与 SRE 之争" title="DEV 与 SRE 之争"><span class="image-title-span">DEV 与 SRE 之争</span></p>
+<p>遇到这种问题时，我们希望引入 DevOps 理念将开发和运维团队打通，让开发自己负责服务的稳定性，解决跨团队协同问题。可惜世界上没有银弹，只要有人在的地方就会有情感有江湖，心碎的故事再次上演。在业务需求面前可观测性建设再一次让路，指标打折扣，追踪追不全。微服务是当前普遍的业务架构，于是我们会发现可观测性建设的妥协变成了 Service Owner 之间的甩锅，不完整的指标和追踪数据说不清楚到底是谁出了问题。另一方面，Infra 团队经常升级可观测性 SDK，也会让使用编译型语言的开发团队心生抱怨 —— 为什么又要让我们发版？</p>
+<p>好消息是，我们的产品 DeepFlow 开源了，大量实战经验让我们相信它即将带给广大开源社区用户可观测性建设革命性的改变。DeepFlow 是一个高度自动化的可观测性协作平台。一方面它基于 eBPF 的 AutoMetrics 和 AutoTracing 能力，实现了指标和分布式追踪的自动采集；另一方面它通过 AutoTagging 机制和强大的可观测性数据集成能力，包括对 Prometheus、Telegraf、OpenTelemetry、SkyWalking 等优秀开放数据的集成和打通能力，激活团队协作，让开发、运维、业务运营团队能在一个频道上对话。下图右下角是我们的 GitHub 二维码，期待大家在我讲完之后扫码加星。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855dc200a7.png" alt="DeepFlow 社区版架构" title="DeepFlow 社区版架构"><span class="image-title-span">DeepFlow 社区版架构</span></p>
+<h2 id="0x1-构建全栈-Metrics-体系"><a href="#0x1-构建全栈-Metrics-体系" class="headerlink" title="0x1: 构建全栈 Metrics 体系"></a>0x1: 构建全栈 Metrics 体系</h2><p>接下来，我来给大家分享一种从自动化走向精细化，从首战告捷到节节胜利的全栈指标体系建设之路。</p>
+<p>我们到底需要哪些指标呢，相信大家已经都是专家。我们需要描述系统的CPU、内存、IO、网络等性能指标，以及描述应用的 RED（Request/Error/Delay）黄金指标，以及还需要重要的面向业务的指标。这些指标通常被不同的团队关注，DeepFlow 希望在一个平台上打通这些指标，并构建完整的关联性，充分释放团队之间的协同效用。</p>
+<p>谈到<strong>从自动化走向精细化</strong>，那么首先给大家介绍一下 DeepFlow 的 <strong>AutoMetrics</strong> 能力。我们基于 eBPF 的零侵扰特性，利用 AF_PACKET 从网卡上采集流量，利用 kprobe/tracepoint 和 uprobe/USDT 从内核函数调用和用户函数调用中采集协议数据，为云原生应用自动生成全栈的系统和应用性能指标，覆盖每个应用请求（即 DeepFlow 中的 <strong>Flow</strong>）从应用进程、Sidecar、Pod 网卡、容器节点网卡、KVM 宿主机网卡、NFV 网关（其中 KVM、NFV 网关仅企业版支持）的全栈性能指标。所有这些能力不需要开发团队插入一行代码，不需要修改 Java 字节码，不需要重启应用进程，完全的自动化！</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630855e0dbf69.png" alt="eBPF/BPF 采集能力" title="eBPF/BPF 采集能力"><span class="image-title-span">eBPF/BPF 采集能力</span></p>
+<p>我们来看一下 AutoMetrics 的效果。我们希望由此带给大家的第一个能力是<strong>全景</strong>。通过对协议数据的解析，我们能自动呈现 HTTP 1/2/S、Dubbo、MySQL、Redis、Kafka、MQTT、DNS 的 RED 黄金指标，并呈现任意微服务之间的调用关系，无论它使用什么样的编程语言（其中 HTTPS 使用 eBPF uprobe，目前仅支持 Golang，正在迭代支持其他语言）。在此之上，我们会给指标数据自动注入丰富的资源、服务、K8s 自定义 Label 作为标签，使得数据能随心过滤、随心聚合。而解锁所有这些指标能力，都不再需要 SRE 去 Push 开发团队了，我相信大家已经开始感受到了高度自动化的可观测性能力。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085654dd44f.png" alt="全景指标" title="全景指标"><span class="image-title-span">全景指标</span></p>
+<p>这还不够，我们希望由此带给大家的第二个能力是<strong>全栈</strong>。自动呈现任意服务之间的网络通信关系，以及吞吐、并发、建连时延、传输时延、建连异常、零窗、重传等网络性能指标。与此同时，利用 DeepFlow 的 AutoTagging 能力，我们为所有指标数据自动注入了统一的标签，使得网络指标和应用指标能够相互关联，并且 Pod、Node、Host 等不同位置的网络和应用指标也能够相互关联。同样，所有这些指标数据也是全自动获取的，不需要开发团队进行插码，也不需要 Infra 团队改造 K8s 基础设施。</p>
+<p>这些能力能帮助我们解决什么问题呢，我相信大家心里已经有一些答案了。我们在实战中通常解决的问题之一是<strong>快速定位是谁</strong>，比如<strong>到底是谁在摧残我的 RDS</strong>。在 K8s 环境下，由于 SNAT 存在的缘故，我们以往无法快速定位到具体的 POD。另外在快速迭代的微服务场景下，我们通常也难以保证所有的客户端都进行了插码。因此这样一个简单的问题其实很难快速回答，通常我们可能需要靠猜来进行定位。现在基于 DeepFlow 的 AutoMetrics 能力，这样的问题能一键回答了。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308565692cd7.png" alt="快速定位是谁" title="快速定位是谁"><span class="image-title-span">快速定位是谁</span></p>
+<p>再一个常见的问题是<strong>快速定位在哪</strong>。任何两个微服务之间的性能指标，DeepFlow 完整的采集了访问路径沿途的逐跳路径，并将所有数据进行了关联。因此我们能快速的判断到底故障发生在客户端、客户端 K8s 节点、云网络、服务端 K8s 节点、还是服务端，也能进一步快速的判断问题是出现在网络建连时延、网络传输时延、还是应用时延。这样一来，再复杂的问题，也能直接交由相应的团队进行响应，所有的关联团队也能快速协同起来。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308565993b96.png" alt="快速定位在哪" title="快速定位在哪"><span class="image-title-span">快速定位在哪</span></p>
+<p>好了，我相信大家已经开始尝到甜头了，SRE 更自由了，开发也更自由了。<strong>迎来首战告捷以后，我们继续向前从胜利走向胜利</strong>。接下来给大家介绍一下 DeepFlow 的指标集成能力，我们目前支持集成 <strong>Prometheus</strong> 和 <strong>Telegraf</strong> 的指标数据，而且也支持集成多个 K8s 集群、传统服务器、云服务器等异构环境中的所有指标数据。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308569a9c947.png" alt="DeepFlow + Prometheus/Telegraf" title="DeepFlow + Prometheus/Telegraf"><span class="image-title-span">DeepFlow + Prometheus/Telegraf</span></p>
+<p>集成 Prometheus 特别简单，同样也体现了 DeepFlow 的高度自动化。仅仅两步，分别配置 Prometheus Server 和 DeepFlow，我们就能将所有的指标数据通过 remote_write 接口自动集成到 DeepFlow 中。同样对 Telegraf 的集成也很简单，也是两步，就能将所有指标数据通过 HTTP output 接口自动集成到 DeepFlow 中。集成方式可参考 <a target="_blank" rel="noopener" href="https://deepflow.io/docs/zh/integration/input/metrics/prometheus/">DeepFlow 在线文档</a>。</p>
+<p>DeepFlow 的能力还不止如此，在集成的同时，它的 <strong>AutoTagging</strong> 能力会为所有指标数据自动注入标签，包括云资源标签、容器资源标签、K8s 自定义 Label 标签，毫无疑问也会保留原始指标中的所有标签。这意味着开发不再需要辛苦的插入一大堆标签了，现在已经插入的一些标签也可以通过 K8s Label 代替了，好多代码可以删除了。实际上有了 DeepFlow 以后，我们希望大家能够充分利用 CI/CD 等 DevOps 流程，利用 K8s Label 的标准化标记能力，让业务代码更干净。作为一个工程师我相信删除冗余代码的感觉最好了！</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856a3031ce.png" alt="AutoTagging" title="AutoTagging"><span class="image-title-span">AutoTagging</span></p>
+<p>插入这么多标签资源消耗如何？DeepFlow 的 <strong>SmartEncoding</strong> 机制很好的解决了这个潜在问题。首先我们使用 ClickHouse 进行数据的存储，因此不用担心高基数标签问题；其次这些自动注入的标签将会提前进行编码，以数值字段的方式在 Server 端插入到数据中；并且对于大量的 K8s 自定义 Label，仅仅需要在查询时进行关联，完全无需存储。基于这些优化，DeepFlow 可以获得在 ClickHouse 原有性能之上的 10 倍提升，包括对于 CPU 和存储的提升。那么你可能会有疑问，这样做了以后查询会不会特别复杂，我们也想到了这一点，通过一个抽象计算层，我们统一的向上层暴露<strong>标准 SQL 查询接口</strong>。对所有数据的查询就像他们是一张张大宽表一样，完全不用关心底下实际存储的到底是数值类型标签还是字符串类型标签，也不用关心 K8s Label 是否随着指标数据一起存储了，一条 SQL 语句、一层 SELECT 均可搞定查询。我们也为 Grafana 开发了很好用的交互式查询条件编辑器，只要会 SQL 就能操作下来，欢迎访问我们的 <a target="_blank" rel="noopener" href="https://deepflow.io/docs/zh/ce-install/overview/">Online Demo</a> 体验。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856a3dc851.png" alt="SmartEncoding" title="SmartEncoding"><span class="image-title-span">SmartEncoding</span></p>
+<p>好了，<strong>从自动化走向精细化，我们从首战告捷到节节胜利，构建了完整的系统、应用、业务指标体系，并且将所有的指标拉齐关联，让运维、开发、运营团队能在一个平台上协同</strong>。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f4b6428.png" alt="全栈指标体系" title="全栈指标体系"><span class="image-title-span">全栈指标体系</span></p>
+<h2 id="0x2-构建无盲点的-Tracing-能力"><a href="#0x2-构建无盲点的-Tracing-能力" class="headerlink" title="0x2: 构建无盲点的 Tracing 能力"></a>0x2: 构建无盲点的 Tracing 能力</h2><p>聊完了指标我们再来聊追踪，同样是<strong>从自动化到精细化的思路，从首战告捷到节节胜利，建设无盲点的分布式追踪能力</strong>。</p>
+<p>团队之间的摩擦往往来自于盲点。以往分布式追踪是一项高度依赖插码的工作，微服务的快速迭代、云原生基础设施的复杂性都使得这项工作变得越来越困难，覆盖面越来越小。这是一个残缺的火焰图，冰封的部分由于无法插码、或者没有来得及插码变成了盲区。而不同的团队也可能使用不同的追踪方案，使得业务流程在追踪时变得割裂。比如左边的团队负责用户，使用 SkyWalking；右边的团队负责业务，使用 OpenTelemetry。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f59c2ba.png" alt="追踪追不全" title="追踪追不全"><span class="image-title-span">追踪追不全</span></p>
+<p>同样，我们先来看看 DeepFlow 强大的 <strong>AutoTracing</strong> 能力。这次我们以一个 Istio 官方的 Bookinfo Demo 为例先来展示一下实际的效果。这个 Demo 由 Java、Ruby、Python、Node.js 语言开发的四个微服务组成，并且使用到了服务网格，每个 Pod 中都有 Sidecar 劫持流量。大家先猜测一下，完成对它的分布式追踪，我们需要做哪些事情？</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630856f66743a.png" alt="Istio Bookinfo Demo" title="Istio Bookinfo Demo"><span class="image-title-span">Istio Bookinfo Demo</span></p>
+<p>我们先来看看 OpenTelemetry + Jaeger 对这个 Demo 追踪效果怎样。你没有看错，由于这个 Demo 中没有做 instrumentation，Jaeger 看不到任何内容，空的。见证奇迹的时刻到了！什么代码都没有插入的情况下，DeepFlow 完整的追踪到了这 4 个微服务之间的调用。依靠 eBPF 和 BPF 的能力，完全的全栈、全链路、自动化！下面我们带着大家详细感受一下这张朴素的火焰图深层次的魅力：零插码，是我们想传达的第一个感受。将火焰图的每个 Span 绘制作为一个节点，我们得到了一个调用流程图，从图中可以清晰的看到这个简单应用的复杂调用过程。全链路，是我们想传达的第二个感受。4 个调用，我们追踪到了 24 个 eBPF Span、14 个 BPF Span，并构建出了他们的关系。多语言，是我们想传达的第三个感受。这里覆盖了 Java、Python、Ruby、Node.js、C、C++ 实现的服务，DeepFlow 就这样悄无声息的追踪出来了。全栈，是我们想传达的第四个感受。我们可以看到，Pod 之间的逐跳网络访问路径清清楚楚，到底哪里是瓶颈明明白白。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573b18a09.png" alt="同节点链路" title="同节点链路"><span class="image-title-span">同节点链路</span></p>
+<p>全栈，也体现在跨容器节点上，无论中间的网络路径是 IPIP 还是 VXLAN 隧道封装，都可以追踪的稳稳当当。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573732015.png" alt="跨节点链路" title="跨节点链路"><span class="image-title-span">跨节点链路</span></p>
+<p>全栈，还体现在 Pod 内部的流量路径上。当你使用 Envoy 时，是否被迷宫一样的流量路径所困扰？DeepFlow 能轻轻松松的打开 Pod 内部的流量路径黑盒，看的一清二楚。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308573d4dea3.png" alt="App 及 Envoy 链路" title="App 及 Envoy 链路"><span class="image-title-span">App 及 Envoy 链路</span></p>
+<p>回顾一下上述六点，我相信他们都是非常酷的创新，我也相信大家也会同样相信。我们的<a target="_blank" rel="noopener" href="https://deepflow.io/docs/zh/features/distributed-tracing/istio-bookinfo-demo/#%E6%9F%A5%E7%9C%8B%E5%88%86%E5%B8%83%E5%BC%8F%E8%BF%BD%E8%B8%AA">在线文档</a>中也对这个 Demo 进行了详细介绍，欢迎上手体验。</p>
+<p>尝到甜头了吗？SRE 更自由了，开发也更自由了。目前这样的自动化追踪能力可用于所有多线程并发模型的场景，也可用于 Nginx、HAProxy、Envoy 等中间件，虽然还不能完全覆盖所有场景，但<strong>首战告捷以后，同样我们又可以继续向前解锁无盲点的追踪能力了</strong>。那么现在给大家介绍一下 DeepFlow 的追踪集成能力，我们目前支持集成 OpenTelemetry 和 SkyWalking 的追踪数据。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308579a64795.png" alt="DeepFlow + OpenTelemetry/SkyWalking" title="DeepFlow + OpenTelemetry/SkyWalking"><span class="image-title-span">DeepFlow + OpenTelemetry/SkyWalking</span></p>
+<p>集成 OpenTelemetry 同样也体现了 DeepFlow 的高度自动化。仅仅两步，分别配置 otel-collector 的 traces_endpoint 和 DeepFlow，我们就能将所有的追踪数据通过 OTLP HTTP 接口集成到 DeepFlow 中。同样对 SkyWalking 的集成也很简单，在 OpenTelemetry 的基础上，配置对 SkyWalking Trace 数据的接收，就能将所有追踪数据集成到 DeepFlow 中。集成方式可参考 <a target="_blank" rel="noopener" href="https://deepflow.io/docs/zh/integration/input/tracing/opentelemetry/">DeepFlow 在线文档</a>。</p>
+<p>这一次，我们尝试以追踪一个 Spring Boot 应用为例来展示 DeepFlow 的惊艳能力。这个 Demo 比较简单，由 5 个微服务和 MySQL 组成。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085798c4d6b.png" alt="Spring Boot Demo" title="Spring Boot Demo"><span class="image-title-span">Spring Boot Demo</span></p>
+<p>我们先来看看 OpenTelemetry + Jaeger 追踪效果，这回不是空的，页面上展示了 46 个 Span，对比 DeepFlow 我们能展示 96 个 Span，这张火焰图现在看起来平平淡淡，但却暗藏玄机，让我们一起慢慢揭开它神秘的面纱，感受无盲点追踪的震撼。全链路，是我们想传达出来的第一个感受。对比 Jaeger 显示的 46 个 Span，DeepFlow 额外追踪到了 20 个 eBPF Span、30 个 BPF Span。我们先有一个数字上的感受，更多的玄机一层一层来看。全栈，是我们想传达出来的第二个感受。我们的网络路径追踪能力依然稳，清晰的展示了 Pod 之间的访问路径。全栈，此时同样也会展现在跨节点通信场景上，无论是否有隧道封装，无论采用何种隧道协议。全链路，我们还想继续传达。仔细看这个图最上方的 6 个 Span。这是由于 loadgenerator 服务没有做插码，OpenTelemetry 不能给出它的追踪路径，但使用 DeepFlow 的追踪能力，自动补齐了 6 个 eBPF 及 BPF Span，整个过程不用手动做任何事情。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082663085799986cc.png" alt="关联 Client" title="关联 Client"><span class="image-title-span">关联 Client</span></p>
+<p>全链路，我们仍然想继续传达。再看图中这部分 Span，eBPF 自动发现了在一系列 OTel Span 之前和之后的两组 eBPF Span，他们是 MySQL 事务的开始和结束，非常酷。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857df31f9f.png" alt="发现 MySQL Transaction" title="发现 MySQL Transaction"><span class="image-title-span">发现 MySQL Transaction</span></p>
+<p>无盲点，是我们想传达出来的第六个感受。我们看图中这段 Span，第一行的客户端调用和最后一行的服务端响应出现了显著的时差。这个时候一般上下游团队会去争吵，到底是谁的问题。DeepFlow 就像一个裁判，谈笑间回答了这里面的玄机。从图中我们能看到，靠近客户端的位置虽然 OpenTelemetry Span 的时延大，但 eBPF Span 时延明显降低了，云原生环境不再是一个黑盒，看的一清二楚。我相信大家此时应该也能感受到满满的团队协作感，再也不用争吵了。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857e01dd3c.png" alt="无盲点追踪" title="无盲点追踪"><span class="image-title-span">无盲点追踪</span></p>
+<p>我们的<a target="_blank" rel="noopener" href="https://deepflow.io/docs/zh/integration/input/tracing/opentelemetry/#%E6%9F%A5%E7%9C%8B%E8%BF%BD%E8%B8%AA%E6%95%B0%E6%8D%AE">在线文档</a>中也对这个 Demo 进行了详细介绍，欢迎上手体验。另一方面，我们的 AutoTagging 能力也适用于追踪数据，我们会为所有的 Span 自动注入了大量标签。我们不再需要配置过多的 otel-collector processor 用于标签注入了，一切都是自动的、高性能的、环保的。</p>
+<p>现在，回过头来看看我们是怎样解决追踪盲点的。左下角的传统追踪方式就像战斗机的火控雷达一样，精准打击、定点打击，依靠开发插码可发现进程内部的函数调用链。右下角的 eBPF 就像预警机的预警雷达一样，自动追踪，全方位覆盖。现代战争已经无法离开预警机了。DeepFlow 将战斗机与预警机结合，实现了无盲点的追踪覆盖，从自动化到精细化，从首战告捷到节节胜利，激活了团队之间的协同能力。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630857e0c95bd.png" alt="火控雷达 + 预警雷达" title="火控雷达 + 预警雷达"><span class="image-title-span">火控雷达 + 预警雷达</span></p>
+<h2 id="0x3-赋能-NewOps"><a href="#0x3-赋能-NewOps" class="headerlink" title="0x3: 赋能 NewOps"></a>0x3: 赋能 NewOps</h2><p>最后，我想聊一聊 NewOps，运维团队如何打造一个产品，一步步为开发团队提供可观测性建设手段。</p>
+<p>目前，已经有不少开源用户基于 DeepFlow 在开始建设全栈全链路的可观测性服务。DeepFlow 的内核平台是开源的，我们基于开源内核构建了企业版的所有协作功能，并基于标准 SQL API 为 Grafana、SkyWalking 等平台提供数据，使得社区可以基于开源内核，在不改变团队现有使用习惯的基础上快速构建完整的可观测性。这里我们来分享几个落地场景。第一个是运维团队基于 DeepFlow 向开发团队提供更丰富的 Grafana Dashboard，展示所有微服务的应用和网络性能、服务调用关系。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308582e677e9.png" alt="DeepFlow + Grafana" title="DeepFlow + Grafana"><span class="image-title-span">DeepFlow + Grafana</span></p>
+<p>第二个是运维团队基于 DeepFlow 向开发团队提供更精细的 SkyWalking 追踪图，点击每一个 Span，可以精细的看到从进程到Sidecar、Pod 网卡、K8s Node 网卡等全栈链路，以一个裁判员的视角帮助开发快速定位问题位置。</p>
+<p><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208266308582d98465.png" alt="DeepFlow + SkyWalking" title="DeepFlow + SkyWalking"><span class="image-title-span">DeepFlow + SkyWalking</span></p>
+<p>刚才我所说的 NewOps，源自 2018 年 Tyler Treat 的一次演讲 —— <a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=JUy3GYkPfto">The Future of Ops</a>。运维团队的职责在云原生是时代悄悄的发生着变化。以往的主要职责是保证业务稳定性；微服务的普及使得运维和开发的摩擦增大，DevOps 的理念逐渐普及，希望开发能做一部分运维的工作，希望促进开发和运维团队之间的协同；当业务上云以后，运维团队发现基础设施都变成了托管服务，很多运维职责不再需要了；但云原生环境的复杂性再一次让开发团队面临了困难，他们精通业务开发，但通常不懂得系统架构、基础设施，遇到问题时无法自己完全解决。这个时候，运维团队需要升级，从以往提供人力服务的角度，转变为基于云基础设施开发一系列产品，提供给业务团队自服务，可观测性平台就是这些产品中的一个核心部分。</p>
+<p>那么，开源的 DeepFlow，作为一个高度自动化的可观测性协作平台，是我们希望带给运维人转型的一个礼物，它让观测更自动，让开发者更自由，让运维团队从打造产品的思路，从自动化到精细化，从首战告捷到节节胜利，构建组织的可观测性平台。相信讲到这里，大家应该能相信可观测性建设的革命到来了，那么现在期待大家拿起你的手机，挂上 VPN，给我们的 GitHub 一个 Star，大家的认可是我们前进的动力。期待大家的使用反馈、Issue、Pull Request！</p>
+<h2 id="0x4-什么是-DeepFlow"><a href="#0x4-什么是-DeepFlow" class="headerlink" title="0x4: 什么是 DeepFlow"></a>0x4: 什么是 DeepFlow</h2><p>DeepFlow 是云杉网络开发的一款<strong>可观测性</strong>产品，旨在为复杂的云基础设施及云原生应用提供深度可观测性。DeepFlow 基于 eBPF 实现了应用性能指标、分布式追踪、持续性能剖析等观测信号的<strong>零侵扰</strong>（<code>Zero Code</code>）采集，并结合<strong>智能标签</strong>（<code>SmartEncoding</code>）技术实现了所有观测信号的<strong>全栈</strong>（<code>Full Stack</code>）关联和高效存取。使用 DeepFlow，可以让云原生应用自动具有深度可观测性，从而消除开发者不断插桩的沉重负担，并为 DevOps/SRE 团队提供从代码到基础设施的监控及诊断能力。</p>
+<p>GitHub 地址：<a target="_blank" rel="noopener" href="https://github.com/deepflowio/deepflow">https://github.com/deepflowio/deepflow</a></p>
+</body></html>
+<div class="footer-share">
+  <div class="share-box">
+    <!-- url text -->
+    <a href="javascript:void(0)" data-href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&text=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到twitter" class="other-link"><img class="no-zoom" src="/blog/images/twitter.png" alt="twitter icon"></a>
+    <a href="javascript:void(0)" data-href="https://reddit.com/submit?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&title=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到reddit" class="other-link"><img class="no-zoom"  src="/blog/images/reddit.png" alt="reddit icon"></a>
+    <a href="javascript:void(0)" data-href="https://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&t=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到facebook" class="other-link"><img class="no-zoom"  src="/blog/images/facebook.png" alt="facebook icon"></a>
+    <a href="javascript:void(0)" data-href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&t=%23DeepFlow%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreferrer" title="分享到ycombinator" class="other-link"><img class="no-zoom"  src="/blog/images/ycombinator.png" alt="hackernews icon"></a>
+    <a href="javascript:void(0)" data-href="https://service.weibo.com/share/share.php?url=https%3A%2F%2Fwww.deepflow.io%2Fblog%2Fzh%2F006-build-observability-platorm-based-on-open-source-components%2F&title=%23DeepFlow%23%20%E5%9F%BA%E4%BA%8E%E5%BC%80%E6%BA%90%E7%9A%84%E5%85%A8%E6%A0%88%E5%85%A8%E9%93%BE%E8%B7%AF%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E5%BB%BA%E8%AE%BE%E5%AE%9E%E8%B7%B5&language=zh_cn" target="_blank" rel="noopener noreferrer" class="other-link" title="分享到微博"><img class="no-zoom"  src="/blog/images/weibo.png" alt="weibo icon"></a>
+</div>
+
+
+</div>
+
+<div class="related-wrap reveal" id="related-posts">
+    <section class='header'>
+      <div class='title cap theme'>相关文章</div>
+    </section>
+    <section class='body'>
+    <div class="related-posts"><div class="link"><span class="time"><span>2023</span><span>-</span><span>03</span><span>-</span><span>30</span></span><a class="item" href="https://www.deepflow.io/blog/zh/039-qcon-2022-in-depth-practice-of-cloud-native-observability-based-on-ebpf/" title="基于 eBPF 的云原生可观测性深度实践">基于 eBPF 的云原生可观测性深度实践</a><span class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','AutoTracing', '/zh/')})(event)" title="AutoTracing">AutoTracing</span><span class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','演讲实录', '/zh/')})(event)" title="演讲实录">演讲实录</span></div><div class="link"><span class="time"><span>2024</span><span>-</span><span>03</span><span>-</span><span>18</span></span><a class="item" href="https://www.deepflow.io/blog/zh/057-the-current-status-and-future-of-zero-code-distributed-tracing-with-ebpf/" title="eBPF 零侵扰分布式追踪的进展和探索">eBPF 零侵扰分布式追踪的进展和探索</a><span class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','AutoTracing', '/zh/')})(event)" title="AutoTracing">AutoTracing</span><span class="ys-tag" href="javascript:void(0)" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag('/blog/','演讲实录', '/zh/')})(event)" title="演讲实录">演讲实录</span></div></div></section></div>
+
+
+
+
+</article>
+
+
+
+
+          
+           <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+          
+        </div>
+      </div>
+      <div class="footer mobile" style="
+        background: url(https://www.yunshan.net/news/images/footer/footbg.png)
+          no-repeat center;
+        background-size: cover;
+      ">
+        
+        <div class="footrigcon">
+          <h4>产品</h4>
+          <div class="lia">
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/products/deepflow.html">DeepFlow Enterprise</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="http://cloud.deepflow.yunshan.net/">DeepFlow Cloud</a>
+          </div>
+          <h4>DeepFlow Enterprise 解决方案</h4>
+          <div class="lia">
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/solutions/npb.html">NPB 混合云全网流量采集与分发</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/solutions/npmd.html">NPMD 混合云网络监控诊断</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/solutions/5GC.html">5G核心网网络功能服务监控</a>
+            <span></span>
+            <a href="https://www.yunshan.net/solutions/dfcon.html" target="_blank">容器化微服务可观测性方案</a>
+          </div>
+          <h4>DeepFlow Enterprise 案例学习</h4>
+          <div class="lia">
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/cases/deepflow.html">客户案例</a>
+            <span></span>
+            <a href="https://www.yunshan.net/cooperation/ysaliyun.html" target="_blank">阿里混合云网络监控实践</a>
+            <span></span>
+            <a href="https://www.yunshan.net/cooperation/ystencentcloud.html" target="_blank">腾讯金融行业云监控实践</a>
+          </div>
+          <h4>关于</h4>
+          <div class="lia">
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/about.html#description">关于我们</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/about.html#founders">创始人</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/about.html#investors">投资者</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/about.html#history">云杉历程</a>
+            <span></span>
+            <a target="_blank" rel="noopener" href="https://www.yunshan.net/about.html#contact">联系我们</a>
+          </div>
+        </div>
+        
+        <p class="copyright">
+          Copyright<sup>&copy;</sup> 2020 YUNSHAN Networks
+          <a target="_blank" href="https://beian.miit.gov.cn/">
+            | 京 ICP 备 14036633号-4
+          </a>
+          <a target="_blank" href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802031005">
+            <img src="https://www.deepflow.io/images/mobile/beian.png" />
+            京公网安备 11010802031005号
+          </a>
+        </p>
+      </div>
+      <div class="links-container web">
+        <div class="links-container-box width1200">
+          
+          <ul class="links-list">
+            <li class="links-item">
+              <span class="links-title">产品</span>
+              <a href="https://www.yunshan.net/products/deepflow.html" target="_blank">DeepFlow Enterprise</a>
+              <a href="https://cloud.deepflow.yunshan.net/" target="_blank">DeepFlow Cloud</a>
+            </li>
+            <li class="links-item">
+              <span class="links-title">DeepFlow Enterprise 解决方案</span>
+              <a href="https://www.yunshan.net/solutions/npb.html" target="_blank">NPB 混合云全网流量采集与分发</a>
+              <a href="https://www.yunshan.net/solutions/npmd.html" target="_blank">NPMD 混合云网络监控诊断</a>
+              <a href="https://www.yunshan.net/solutions/5GC.html" target="_blank">5G核心网网络功能服务监控</a>
+              <a href="https://www.yunshan.net/solutions/dfcon.html" target="_blank">容器化微服务可观测性方案</a>
+            </li>
+            <li class="links-item">
+              <span class="links-title">DeepFlow Enterprise 案例学习</span>
+              <a href="https://www.yunshan.net/cases/deepflow.html" target="_blank">客户案例</a>
+              <a href="https://www.yunshan.net/cooperation/ysaliyun.html" target="_blank">阿里混合云网络监控实践</a>
+              <a href="https://www.yunshan.net/cooperation/ystencentcloud.html" target="_blank">腾讯金融行业云监控实践</a>
+            </li>
+            <li class="links-item">
+              <span class="links-title">关于</span>
+              <a href="https://www.yunshan.net/about.html#description" target="_blank">关于我们</a>
+              <a href="https://www.yunshan.net/about.html#founders" target="_blank">创始人</a>
+              <a href="https://www.yunshan.net/about.html#investors" target="_blank">投资者</a>
+              <a href="https://www.yunshan.net/about.html#history" target="_blank">云杉历程</a>
+              <a href="https://www.yunshan.net/about.html#contact" target="_blank">联系我们</a>
+            </li>
+          </ul>
+          
+          <p class="foot-content">
+            Copyright© <span id="year">2022</span> YUNSHAN Networks
+          </p>
+        </div>
+      </div>
+
+      <div class="ys-model" style="display: none">
+        <div class="ys-model-masking"></div>
+        <span id="copy-content">https://cloud.deepflow.yunshan.net</span>
+        <div class="ys-model-contianer captcha-box">
+          <div class="ys-model-contianer-title">温馨提示</div>
+          <div class="ys-model-contianer-content">
+            <p class="content-text">请切换到PC端，登录DeepFlow</p>
+          </div>
+          <div class="ys-model-contianer-footer">
+            <button id="copy-button" class="primary-button">复制网址</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ys-toast" class="ys-toast hide" style="display: none">
+        <svg t="1643013372801" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+          p-id="2147" width="16" height="16">
+          <path
+            d="M512 85.333333c235.637333 0 426.666667 191.029333 426.666667 426.666667S747.637333 938.666667 512 938.666667 85.333333 747.637333 85.333333 512 276.362667 85.333333 512 85.333333z m182.613333 297.354667a32 32 0 0 0-45.258666 0.032L458.922667 573.44l-84.341334-83.989333a32 32 0 0 0-45.162666 45.344l106.986666 106.549333a32 32 0 0 0 45.226667-0.064l213.013333-213.333333a32 32 0 0 0-0.032-45.258667z"
+            p-id="2148" fill="#67C23A"></path>
+        </svg><span>复制成功！</span>
+      </div>
+      <div class="nav-list mobile">
+        <div class="masking"></div>
+        <ul class="nav-list-box" style="height: 1px">
+          <li class="nav-link" data-name="deepflow-cloud">
+            产品
+          </li>
+          <li class="nav-link" data-name="agent">
+            智能体
+          </li>
+          <li class="nav-link "
+            data-name="eBPF">
+            eBPF
+          </li>
+          <li class="nav-link" data-name="docs">
+            文档
+          </li>
+          <li class="nav-link active"
+            data-name="blog">
+            博客
+          </li>
+          <li class="nav-link" data-name="auth">
+            认证
+          </li>
+        </ul>
+      </div>
+      
+
+<div class="search-pop-overlay"><div class="popup search-popup">
+<div class="search-header"><span class="search-icon"><i class="fa fa-search"></i></span><div class="search-input-container"><input autocomplete="off" autocapitalize="off" placeholder="搜索博客" spellcheck="false" type="search" class="search-input" /></div><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span></div><div id="search-result"><div id="no-result"><i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i></div></div>
+</div></div>
+        <div class="scripts"><script type="text/javascript">
+  const TOP_POST_EEMP = `<a class="post-card top-post-item post " href="/blog/deepflow-blog/blog/036-ebpf-the-key-technology-to-observability-zh/"<article class="top-post-item"><div class="top-post-cover"><img src="https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023091164fe9e80cf29f.jpeg" alt=""></div><div class="post-info"><span class="author">向阳</span><span class="date">2023-09-11</span><span class="read">阅读：120</span></div><div class="post-description">APM Agent 由于其侵扰性，难以在金融、电信、电力等行业的核心业务系统中落地，难以在云原生基础设施中插桩。eBPF 的零侵扰优势很好的解决了这些痛点，是云原生时代实现可观测性的关键技术。DeepFlow 基于 eBPF 的全景图、分布式追踪、持续性能剖析能力已服务于各行各业，帮助金融行业的分布式核心交易系统、电信行业的 5G 核心网、能源行业的分布式电力交易系统、智能网联汽车、云原生游戏服务等快速实现了零侵扰的可观测性，保障了新一代业务和基础设施的持续创新。</div><div class="tags ys-post-tags"><span class="ys-tag" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag(\'/blog/\',\'Observability\')})(event)" title="Observability">Observability</span><span class="ys-tag" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag(\'/blog/\',\'eBPF\')})(event)" title="eBPF">eBPF</span></div></article></a>`
+  const eBPFUrl = '/ebpf-the-key-technology-to-observability/'
+  const eBPFZHUrl = '/zh/ebpf-the-key-technology-to-observability/'
+  function addWebHeaderEvent() {
+    document.querySelectorAll(".to-signup").forEach((element) => {
+      element.addEventListener("click", function () {
+        window.location.href = "/signup.html";
+      });
+    });
+    document.querySelector('.feature-list').querySelectorAll('.feature-item').forEach(element => {
+      element.addEventListener('click', function () {
+        var name = element.getAttribute('data-name')
+        var href = '', target = ''
+        const isZh = window.location.href.includes('/zh/')
+        switch (name) {
+          case 'deepflow-cloud':
+            if (isZh) {
+              href = '/zh/'
+            } else {
+              href = '/'
+            }
+            target = '_self'
+            break;
+          case 'agent':
+            if (isZh) {
+              href = '/zh/agent/'
+            } else {
+              href = '/agent/'
+            }
+            target = '_self'
+            break;
+          case 'eBPF':
+            if (isZh) {
+              href = eBPFZHUrl
+            } else {
+              href = eBPFUrl
+            }
+            target = '_self'
+            break;
+          case 'blog':
+            if (isZh) {
+              href = '/blog/zh/'
+            } else {
+              href = '/blog/'
+            }
+            target = '_self'
+            break;
+          case 'docs':
+            if (isZh) {
+              href = "/docs/zh/";
+            } else {
+              href = '/docs/'
+            }
+            target = '_self'
+            break;
+          case 'auth':
+            if (isZh) {
+              href = '/zh/cert/'
+            } else {
+              href = '/cert/'
+            }
+            target = '_self'
+            break;
+          default:
+            break;
+        }
+        window.open(href, target)
+      })
+    })
+  }
+
+  // 跳转js
+  window.jumpByTag = function (root, name, path="") {
+    const isZh = path.includes('/zh/')
+    window.location.href = root + (isZh ? 'zh/' : '') + 'tags/' + encodeURIComponent(name.replace(/\s/g, '-')) + '/'
+  }
+
+  function IsMobile() {
+    var ua = navigator.userAgent;
+    var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+      isIphone = ua.match(/(iPhone\sOS)\s([\d_]+)/),
+      isAndroid = ua.match(/(Android)\s+([\d.]+)/),
+      isMobile = ipad || isIphone || isAndroid;
+    return !!isMobile;
+  }
+
+
+  function addMobileHeaderEvent() {
+    document.querySelectorAll(".to-signup").forEach((element) => {
+      element.addEventListener("click", function () {
+        window.location.href = "/signup.html";
+      });
+    });
+    // document.getElementById("signin-m").addEventListener("click", function () {
+    //     document.querySelector(".ys-model").style.display = "block";
+    //     setTimeout(() => {
+    //         document
+    //             .querySelector(".ys-model-contianer")
+    //             .classList.remove("captcha-box");
+    //     });
+    // });
+  }
+
+
+  function addModelEvent() {
+    document
+      .querySelector(".ys-model-masking")
+      .addEventListener("click", function () {
+        document
+          .querySelector(".ys-model-contianer")
+          .classList.add("captcha-box");
+        setTimeout(() => {
+          document.querySelector(".ys-model").style.display = "none";
+        }, 300);
+      });
+
+    var btnCopy = new ClipboardJS("#copy-button", {
+      // 通过target指定要复印的节点
+      target: function () {
+        return document.querySelector("#copy-content");
+      },
+    });
+    btnCopy.on("success", function (e) {
+      e.clearSelection();
+      // btnCopy.destroy();
+      showToast();
+    });
+  }
+
+
+  function addNavClick() {
+    let showNav = false;
+    let timer;
+    let lastOverflow
+
+    document.getElementById("nav").addEventListener("click", function () {
+      if (timer) {
+        return false;
+      }
+      if (showNav) {
+        document.body.style.overflow = lastOverflow
+        showNav = false;
+        document.querySelector(".nav-list-box").style.height = "1px";
+        timer = setTimeout(() => {
+          document.querySelector(".nav-list").style.display = "none";
+          timer = null;
+        }, 300);
+      } else {
+        showNav = true;
+        lastOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        document.querySelector(".nav-list").style.display = "block";
+        timer = setTimeout(() => {
+          document.querySelector(".nav-list-box").style.height = document.querySelector('.nav-list-box').querySelectorAll('.nav-link').length * 2.1742 + "rem";
+          timer = null;
+        });
+      }
+    });
+
+    document.querySelectorAll(".nav-link").forEach((element) => {
+      element.addEventListener("click", function () {
+        const name = element.getAttribute("data-name");
+        const isZh = window.location.href.includes('/zh/')
+        let href = "",
+          target = "";
+        switch (name) {
+          case "deepflow-cloud":
+            if (isZh) {
+              href = '/zh/'
+            } else {
+              href = '/'
+            }
+            target = "_self";
+            break;
+          case "agent":
+            if (isZh) {
+              href = '/zh/agent/'
+            } else {
+              href = '/agent/'
+            }
+            target = "_self";
+            break;
+          case "eBPF":
+            if (isZh) {
+              href = eBPFZHUrl
+            } else {
+              href = eBPFUrl
+            }
+            target = "_self";
+            break;
+          case "blog":
+            if (isZh) {
+              href = '/blog/zh/'
+            } else {
+              href = '/blog/'
+            }
+            target = "_self";
+            break;
+          case "docs":
+            if (isZh) {
+              href = "/docs/zh/";
+            } else {
+              href = '/docs/'
+            }
+            target = "_self";
+            break;
+          case "auth":
+            if (isZh) {
+              href = '/zh/cert/'
+            } else {
+              href = '/cert/'
+            }
+            target = "_self";
+            break;
+          default:
+            return false
+        }
+        window.open(href, target);
+      });
+    });
+  }
+
+  var timer;
+  var timer1;
+  function showToast() {
+    // 展示成功
+    var el = document.querySelector("#ys-toast");
+    if (!el) {
+      return false;
+    }
+    el.style.display = "flex";
+    setTimeout(() => {
+      el.classList.remove("hide");
+    });
+
+    if (timer) {
+      clearTimeout(timer);
+    }
+    if (timer1) {
+      clearTimeout(timer1);
+    }
+    document.querySelector(".ys-model-contianer").classList.add("captcha-box");
+    setTimeout(() => {
+      document.querySelector(".ys-model").style.display = "none";
+    }, 300);
+    timer = setTimeout(hideToast, 2000);
+  }
+
+  function hideToast() {
+    var el = document.querySelector("#ys-toast");
+    if (!el) {
+      loadToast();
+      return false;
+    }
+    el.classList.add("hide");
+    timer1 = setTimeout(() => {
+      el.style.display = "none";
+    }, 1000);
+  }
+
+  window.addEventListener('load', function () {
+    document.querySelectorAll('.other-link').forEach(element => {
+      element.addEventListener('click', function (event) {
+        const href = element.getAttribute('data-href')
+        window.open('/blog/link.html?' + encodeURIComponent(href), "_blank")
+        event.stopPropagation()
+        event.preventDefault()
+      })
+    })
+    if (IsMobile()) {
+      addMobileHeaderEvent();
+      addModelEvent();
+      addNavClick();
+    } else {
+      addWebHeaderEvent();
+    }
+
+    document.querySelectorAll('.logo-image').forEach(element => {
+      element.addEventListener('click', function () {
+        const isZh = window.location.href.includes('/zh/')
+        window.location.href = isZh ? '/zh/' : '/'
+      })
+    })
+  })
+
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (var key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function () {
+        var loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'compvare') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.7.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js',
+    sitesjs: '/blog/js/plugins/sites.js',
+    friendsjs: '/blog/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('false' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":false,"js":"https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":false,"service":"flying_pages","instant_page":"https://cdn.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://cdn.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+
+  (function () {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).parentNode.querySelectorAll('.leancloud-visitors-count');
+    }
+    function getUrlId(url){
+      return url
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+      // 支持2个url检测
+      var isProd = window.location.href.startsWith('https://www.deepflow.io/') || window.location.href.startsWith('https://deepflow.io/') 
+      var urlId = getUrlId(url)
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: urlId })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).forEach(el => {
+              el.innerText = counter.time + 1;
+            })
+            isProd && Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+            isProd && Counter('post', '/classes/Counter', { title, url:urlId, time: 1 })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).forEach(el => {
+                  el.innerText = 1;
+                })
+              })
+              .catch(error => {
+                console.error('Failed to create', error);
+              });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    const step = 5 // 批次
+    async function getResultPipeline(Counter, entries) {
+      let total = []
+      for(let i = 0; i < entries.length; i = i + step){
+       const results = await Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries.slice(i,i+step) } })))
+        .then(response => response.json())
+        total = total.concat(results.results)
+      }
+      return total
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud-visitors-count');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+      var entriesId = Array.from(new Set(entries.map(url=>getUrlId(url))))
+
+      getResultPipeline(Counter, entriesId)
+        .then((results) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === getUrlId(url));
+            leancloudSelector(url).forEach(el => {
+              el.innerText = target ? target.time : 0;
+            })
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    var ysposts = [{"path":"/blog/037-ebpf-the-key-technology-to-observability-en/","tags":["AutoTracing","APM"],"author":"Jie JIN, Yang XIANG","date":"2023-11-17","excerpt":"Due to its intrusive nature, APM Agent is difficult to deploy in core business systems in finance, telecommunications, and power industries. It is also challenging to instrument into cloud-native infrastructures. The Zero Code advantage of eBPF effectively addresses these pain points, making it a key technology for achieving observability in the cloud-native era. DeepFlow, based on eBPF, has provided universal views, distributed tracing, and continuous performance profiling capabilities to various industries. It has helped achieve Zero Code observability in distributed core transaction systems in the financial industry, 5G core networks in the telecommunications industry, distributed power trading systems in the energy industry, intelligent connected cars, and cloud-native game services, ensuring continuous innovation for the new generation of businesses and infrastructure.","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023091264ffc0871c2bc.jpeg","title":"eBPF: The Key Technology to Observability"},{"path":"/blog/055-unlock-all-in-one-observability-for-apisix-with-deepflow/","tags":["AutoTracing","APISIX","Gateway"],"author":"Casey, Bin Peng","date":"2024-02-07","excerpt":"This article aims to elucidate how to leverage DeepFlow's zero-code feature based on eBPF to construct an observability solution for APISIX. On this basis, it integrates the rich data sources of existing APISIX plugins to eliminate data silos and build an all-in-one platform for comprehensive observability of the APISIX gateway. Through DeepFlow, APISIX can achieve comprehensive observability from traffic monitoring and tracing analysis to performance optimization, eliminating data dispersion and providing a centralized view. This accelerates fault diagnosis and performance tuning, making the work of DevOps and SRE teams more efficient. This article will focus on how APISIX's tracing data, metric data, access logs, and performance profiling data can be integrated with DeepFlow.","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020765c2ee18b208d.jpg","title":"Unlock All-in-One Observability for APISIX with DeepFlow"},{"path":"/blog/065-building-unified-observability-for-kong-with-deepflow-en/","tags":["AutoTracing","Gateway","Kong"],"author":"Casey, Bin Peng","date":"2024-06-06","excerpt":"This article will introduce how to use DeepFlow's zero-code eBPF-based features to build an observability solution for Kong Gateway. It will also explain how to integrate the rich data sources from existing Kong plugins on this basis to eliminate silos and create a unified observability platform for comprehensive monitoring and analysis of Kong Gateway. With DeepFlow, Kong Gateway can achieve comprehensive observability from traffic monitoring and tracing analysis to performance optimization, eliminating data fragmentation and providing a centralized monitoring view. This accelerates fault diagnosis and performance tuning, making the work of DevOps and SRE teams more efficient.","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240606666119b1d3422.jpg","title":"Building Unified Observability for Kong with DeepFlow"},{"path":"/blog/zh/001-a-new-era-of-automated-observability/","tags":["AutoTracing","直播实录"],"author":"向阳","date":"2022-07-28","excerpt":"现有的可观测性解决方案在消耗着开发人员大量的时间和精力，并且不利于团队协同，DeepFlow 希望开启一个高度自动化的可观测性新时代。","cover":"/blog/images/zh/./001-imgs/cover.png","title":"开启高度自动化的可观测性新时代"},{"path":"/blog/zh/002-use-sealos-to-enable-observability-of-kubernetes-apps-with-one-command/","tags":["sealos"],"author":"宋建昌","date":"2022-08-05","excerpt":"让任何人使用 sealos 在任何场景、任何环境无障碍开启 Kubernetes 及其上应用的可观测性。","cover":"/blog/images/zh/./002-imgs/cover.png","title":"使用 sealos 一键开启 Kubernetes 应用的可观测性"},{"path":"/blog/zh/003-use-otel-to-receive-skywalking-agent-trace-data/","tags":["APM","OpenTelemetry","SkyWalking"],"author":"谭建，林嘉炜","date":"2022-08-12","excerpt":"经过半年的努力，我们向 OpenTelemetry 社区贡献了完整的 SkyWalking Receiver。从现在开始，使用 SkyWalking 探针的所有用户能够在不修改任何代码的情况下，丝滑的使用 OpenTelemetry 兼容的所有可观测性后端平台。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/png/960d31dc159bd21df3667ad762458aeb_20220812144449.png","title":"使用 OpenTelemetry 零代码修改接收 SkyWalking 追踪数据"},{"path":"/blog/zh/004-enable-highly-automated-microservice-observability-in-kubesphere/","tags":["KubeSphere"],"author":"宋建昌","date":"2022-08-19","excerpt":"Kubernetes 为开发者们带来了巨大的微服务部署便利，但同时也将可观测性建设的重要性提升到了前所未有的程度：大量微服务之间错综复杂的调用关系难以梳理，应用性能瓶颈链路难以排查，应用异常难以定位。从现在开始，使用 KubeSphere 的所有用户可以从其应用商店中快速部署 DeepFlow，为微服务应用轻松开启高度自动化的全栈、全链路可观测性。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022082263032bcd3a553.png","title":"在 KubeSphere 中开启高度自动化的微服务可观测性"},{"path":"/blog/zh/005-autologging-for-request-log-and-flow-log/","tags":["直播实录"],"author":"李倩","date":"2022-08-23","excerpt":"DeepFlow AutoLogging 可以自动采集网络流日志，并提供丰富的性能指标和精细至每包的TCP时序日志，与应用调用日志结合提供完整的全栈回溯能力","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202208236304a5584f96a.png","title":"DeepFlow AutoLogging：自动采集应用调用日志和流日志"},{"path":"/blog/zh/006-build-observability-platorm-based-on-open-source-components/","tags":["AutoTracing","演讲实录"],"author":"向阳","date":"2022-08-26","excerpt":"基于 DeepFlow 的高度自动化特性，结合丰富的开源生态，本文从 Metrics 和 Tracing 两个方面介绍怎样从自动化走向精细化，一步步构建全栈、全链路的可观测性协作平台。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220826630858967e210.png","title":"基于开源的全栈全链路可观测性建设实践"},{"path":"/blog/zh/006-enable-the-observability-of-kube-ovn-CNI-environment/","tags":["直播实录","Kube-OVN","Network"],"author":"宋建昌","date":"2022-09-22","excerpt":"Kubernetes 相关生态越来越完善，可选择的 CNI 越来越多，Kube-OVN 作为 CNCF 旗下的企业级云原生网络编排系统，将 SDN 的能力和云原生结合，提供丰富的功能，极致的性能以及良好的可运维性带给 Kubernetes 用户，同时也使得网络可观测变得更加困难，本次议题讲述 DeepFlow 在 Kube-OVN CNI 环境的全栈、全链路可观测性建设实践。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022102163523e634d54f.png","title":"开启 Kube-OVN CNI Kubernetes 集群的可观测性"},{"path":"/blog/zh/007-skywalking-distributed-tracing-without-blind-spots/","tags":["APM","SkyWalking"],"author":"李倩","date":"2022-09-02","excerpt":"云原生环境下，一个应用调用会穿越业务代码、框架代码、系统函数调用、API Gateway、服务网格 Sidecar、iptables/ipvs/OvS/LinuxBridge 等容器网络组件，路径非常复杂。现有的分布式追踪方式仅能覆盖业务代码、框架代码，存在很多盲点，经常会碰到“客户端说慢、而服务端两手一摊~正常的呀”，或者是“开发说慢、而DBA说没\\~有\\~呀”的窘境。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202209026311d73593f88.png","title":"DeepFlow 让 SkyWalking 分布式追踪无盲点"},{"path":"/blog/zh/008-standardizing-prometheus-telegraf-labels-to-break-data-silos/","tags":["Prometheus","Telegraf","AutoTagging"],"author":"李倩","date":"2022-09-08","excerpt":"DeepFlow 是一个高度自动化的可观测性协作平台，其中的协作体现在对各类数据的标准化上。对于可观测性三大支柱之一的 Metrics，DeepFlow 不仅可利用 eBPF 自动采集应用程序的系统、网络、应用全栈黄金指标，也可集成目前主流的指标数据源，例如云原生环境下的 Prometheus，传统环境中的 Telegraf 等。DeepFlow 的 AutoTagging 和 SmartEncoding 机制为这些数据源自动注入丰富的标准化标签，使得可观测性从此告别数据孤岛。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20220909631aaae9e5b9d.png","title":"告别数据孤岛：DeepFlow AutoTagging 之 Prometheus 标签标准化"},{"path":"/blog/zh/009-use-deepflow-as-the-backend-of-skywalking-to-eliminate-blind-spots/","tags":["AutoTracing","APM","SkyWalking"],"author":"李倩","date":"2022-09-26","excerpt":"DeepFlow 作为一个可观测性协作平台，可作为 SkyWalking 的后端快速接入 SkyWalking Agent 及 Instrument SDK 的数据，并利用基于 eBPF 的 AutoTracing 能力补齐网络和系统 Span 来消除分布式链路追踪中的盲点，真正让业务开发团队、框架开发团队、服务网格运维团队、容器运维团队、DBA 团队、云运维团队多部门在一个平台协作起来。同时，结合 DeepFlow 自动生成的应用黄金指标数据（AutoMetrics）、调用日志和流日志（AutoLogging），以及集成并标准化的 Prometheus/Telegraf 指标数据（AutoTagging），可快速构建一个统一的可观测性平台。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022092663316d0906f7c.png","title":"使用 DeepFlow 作为 SkyWalking 的后端，消除观测盲点"},{"path":"/blog/zh/010-grafana-deepflow-dashboard-for-k8s-ingress/","tags":["AutoTracing","Gateway","Grafana"],"author":"李倩","date":"2022-10-14","excerpt":"意识到已有 K8s Ingress 监控数据的缺陷以后，我们动手基于 DeepFlow 生成了一个高效的 K8s Ingress 可观测性 Dashboard，粒度精细到域名、API Endpoint、后端服务，指标量覆盖请求、时延、异常、吞吐，以便快速找到性能瓶颈和故障原因。**得益于 DeepFlow 的 AutoTracing、AutoMetrics、AutoTagging、SmartEncoding 核心机制，我们可以从应用角度分析 K8s Ingress 的调用拓扑、性能指标、访问日志、调用链追踪，无需任何插码、配置修改、进程重启。**","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022101463490793c4cbd.png","title":"使用 DeepFlow 开启 Ingress 可观测性"},{"path":"/blog/zh/011-why-it-systems-need-observability/","tags":["直播实录"],"author":"亓亚烜","date":"2022-01-20","excerpt":"“云原生可观测性分享会”第一期内容《IT系统为什么需要可观测性》由云杉网络CEO亓亚烜演讲，内容包括可观测性的五个方面：1、从为什么需要可观测性？2、如何理解可观测性？3、如何评估可观测性？4、如何构建可观测性？5、如何使用可观测性？来进行阐述。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20221021635219e405ef5.jpeg","title":"IT系统为什么需要可观测性"},{"path":"/blog/zh/012-build-a-unified-cloud-native-application-observability-data-platform/","tags":["直播实录"],"author":"向阳","date":"2022-04-11","excerpt":"“云原生可观测性分享会”第三期《构建统一的云原生应用可观测性数据平台》由云杉网络 研发VP向阳演讲，分享了在构建统一的云原生应用可观测性数据平台中的一些思考和经验。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022102163526f7969571.jpeg","title":"构建统一的云原生应用可观测性数据平台"},{"path":"/blog/zh/013-grafana-deepflow-dashboard-db/","tags":["AutoTracing","Grafana","MySQL","SQL Database"],"author":"林嘉炜","date":"2022-10-24","excerpt":"我们基于 DeepFlow 构建了一个高效的、无侵入的 MySQL 可观测 Dashboard，可实时监控网络时延、吞吐、异常状况，并快速定位有性能问题的 SQL，快速定位性能瓶颈和排查故障原因。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202210246356481b9b584.png","title":"使用 DeepFlow 开启 MySQL 可观测性"},{"path":"/blog/zh/014-the-importance-of-metadata-in-observability/","tags":["直播实录","AutoTagging"],"author":"陈晨","date":"2022-10-26","excerpt":"虚拟化和容器化让应用的部署环境和运行环境变得复杂起来，系统的复杂度呈指数级增长。在**垂直领域**下各个可观测性开源产品的**侧重点也是不同**，那打通这些产品之间的联系，来构建自己的可观测性平台是一件比较复杂的事情。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20221027635a6171c75b3.png","title":"论元数据在可观测性中的重要性"},{"path":"/blog/zh/015-deepflow-uses-spot-Instances-to-speed-up-github-action-exploration/","tags":["CI"],"author":"宋建昌","date":"2022-11-01","excerpt":"Github Action 让托管在 Github 中的项目 CI 流程变得很方便，但 Github 默认提供的 2C7G 的 Runner 配置太低，跑一些大型项目编译任务会非常慢，本文是 DeepFlow 使用公有云高配廉价 Spot 实例加速 Action 的探索，经历了一系列踩坑之后，最终我们找到了解决性能、成本、ARM 等全部需求的理想方案，希望对你有用。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202211016360e78904abd.png","title":"DeepFlow 使用 Spot 实例加速 GitHub Action 的探索"},{"path":"/blog/zh/016-gitlabci-use-aliyun-eci/","tags":["CI"],"author":"毛一枫","date":"2022-11-04","excerpt":"当项目中存在一些大型编译项目时，由于机器性能不足，导致研发花费大量时间等待构建，浪费生命，本文带你了解 DeepFlow 如何使用阿里云 ECI Spot 弹性实例打造低成本高性能无限并发的 Gitlab Runner。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202211046364b14e7b6a0.png","title":"使用 Spot 实例打造低成本高性能无限并发的 Gitlab Runner"},{"path":"/blog/zh/017-grafana-deepflow-dashboard-dns/","tags":["Network","Grafana","DNS","实践案例"],"author":"李倩, 嘉炜","date":"2022-11-15","excerpt":"我们基于 DeepFlow 构建了对一个高效、可配置、无侵入、面向应用的 DNS 监控面板，可监控 DNS 服务的网络异常、吞吐、时延，以及访问日志，以快速定位性能瓶颈和排查故障原因","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20221115637353dec7c21.png","title":"使用 DeepFlow 开启 DNS 可观测性"},{"path":"/blog/zh/018-the-practice-of-automatically-implementing-observability-based-on-ebpf/","tags":["AutoTracing","直播实录"],"author":"向阳","date":"2022-11-12","excerpt":"本文为 DeepFlow 在首届中国 eBPF 大会上的在线演讲实录。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20221122637c3fba97a63.png","title":"DeepFlow 基于 eBPF 的高度自动化可观测性实践"},{"path":"/blog/zh/019-deepflow-grafana-plugin-development/","tags":["Grafana"],"author":"振宇","date":"2022-12-08","excerpt":"Grafana 是目前最广泛使用的数据可视化软件之一，DeepFlow 中已有大量基于 Grafana Dashboard 解决的可观测性场景的实战分享。这些场景都是基于 DeepFlow Grafana 插件提供的查询能力来构建的。DeepFlow 社区致力于基于开源生态构建一个完整的可观测性平台，而终端呈现和数据的可视化呈现是其中的重要一环。本文对当前 DeepFlow 提供的 Grafana 插件做一个简单介绍，抛砖引玉，希望大家能了解并创造更多的 DeepFlow 可观测性生态应用，也希望能让大家掌握如何开发一套完整的 Grafana Plugin。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202212146399463362189.jpg","title":"DeepFlow Grafana 插件开发实践"},{"path":"/blog/zh/020-k8s-service-exception-troubleshooting/","tags":["实践案例"],"author":"李倩","date":"2022-12-23","excerpt":"K8s 让应用发布更加快速安全，让应用部署也更加灵活，但在带来这些便利性的同时，也给应用排障增加了 K8s 平台层面的复杂度，本篇文章将以常见的服务异常入手，来详细拆解 K8s 服务访问方式，以及如何利用现有的可观测体系来对 k8s 平台和应用服务进行快速排障。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022122363a56bf01ea9a.png","title":"K8s 服务异常排障过程全解密"},{"path":"/blog/zh/021-grafana-deepflow-dashboard-for-redis/","tags":["AutoTracing","Grafana","Redis"],"author":"林嘉炜","date":"2022-12-29","excerpt":"基于 DeepFlow 构建 Redis 的可观测 Dashboard，实时监控 Redis 服务的网络状态、吞吐量、异常和错误，实现应用无盲点可观测，快速定位异常原因和排障。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2022123063ae5c5f1b370.png","title":"使用 DeepFlow 开启 Redis 可观测性"},{"path":"/blog/zh/022-autotagging-10x-performance-improvement/","tags":["直播实录","AutoTagging"],"author":"宋贞","date":"2023-01-13","excerpt":"本文为云杉网络`原力释放 - 云原生可观测性分享会`第十四期直播实录。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023011663c4b124b749f.jpg","title":"DeepFlow AutoTagging 10x 性能提升实战"},{"path":"/blog/zh/023-troubleshooting_of_the_k8s_application_with_%20deepflow/","tags":["实践案例"],"author":"李倩","date":"2023-02-08","excerpt":"故障发生在2023春节前两天，DeepFlow 团队内部访问工单系统出现问题，影响了所有北京区的同事，这篇文章将详细记录如何利用 DeepFlow 定位到对这次问题根因（网关 MSS 误变更导致报文大于 MTU，大数据报文被丢弃）。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023021363e9fb0c2a548.png","title":"可观测性实战：快速定位 K8s 应用故障"},{"path":"/blog/zh/024-analysis_of_delay_with_deepflow/","tags":["Network","实践案例"],"author":"李倩","date":"2023-02-28","excerpt":"应用异常时，基本可以分为服务访问不通和服务响应慢两个大类。其中服务响应慢的问题定位非常棘手，很多无头案。应用团队有日志和追踪，对于自认为的不可能不合理的事情都会甩给基础设施团队，又由于基础设施团队现有的监控数据缺乏应用的观测视角，通常成为一切「不是我的问题」超自然现象的终极背锅侠，其中以网络团队尤为严重。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202303036401bcf33bc9f.png","title":"应用响应时延背后深藏的网络时延"},{"path":"/blog/zh/025-network_observability_of_k8s/","tags":["Network","Cilium"],"author":"李倩","date":"2023-03-17","excerpt":"随着分布式服务架构的流行，特别是微服务等设计理念在现代应用普及开来，应用中的服务变得越来越分散，因此服务之间的通信变得越来越依赖网络，很有必要来谈谈实现微服务可观测性中越来越重要的一环——云原生网络的可观测。K8s 是微服务设计理念能落地的最重要的承载体，本文主要聚焦谈谈 K8s 的网络可观测性，以及其给基础设施/应用等团队能带来的价值。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202303176413e10c9ec3c.png","title":"K8s 应用的网络可观测性： Cilium vs DeepFlow"},{"path":"/blog/zh/026-traditional-APMs-use-deepflow-to-enhance-data/","tags":["AutoTracing","APM","SkyWalking"],"author":"李倩","date":"2023-03-20","excerpt":"传统 APM 聚焦在代码层面，不具备全栈多维度无盲点看问题的能力，同时由于插码的阻碍往往难以覆盖所有微服务，DeepFlow 依靠 eBPF 零代码修改采集全栈追踪数据并聚合生成了调用关系，可以增强传统 APM 的数据，大大缩短问题定界时间。对于已经使用传统 APM 工具的用户，可以考虑使用 DeepFlow 提供的 API 来增强应用依赖拓扑及调用追踪，以获得全栈数据追踪能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20230324641d322620684.png","title":"利用 DeepFlow 为传统 APM 开启全栈追踪能力"},{"path":"/blog/zh/027-grafana-deepflow-dashboard-dubbo/","tags":["Grafana","Dubbo"],"author":"林嘉炜","date":"2023-04-17","excerpt":"基于 DeepFlow 构建 Dubbo 的可观测 Dashboard，可实时监控 Dubbo 服务集群内的网络时延、应用服务时延、吞吐及调用日志，及时检查应用服务的健康水平并分析应用服务可用性。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023041464390c3bcc7c4.png","title":"使用 DeepFlow 开启 Dubbo 可观测性"},{"path":"/blog/zh/028-service_map_observation_performance_test/","tags":["实践案例"],"author":"李倩","date":"2023-04-20","excerpt":"测试小姐姐正在对云原生的电商应用进行压测，但是如何对压测结果进行持续的观测呢？这一直是比较头痛的事情，本文将介绍如何利用 DeepFlow 的全景拓扑帮助小姐姐快速找到瓶颈点。DeepFlow 全景拓扑无需业务修改代码、配置或者重启服务，利用 BPF/eBPF 技术通过对业务零侵扰的方式构建而来，这是一种很便捷且低成本的方式来观测全链路压测的结果。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20230421644227604fa8e.png","title":"使用全景拓扑持续跟踪云原生应用的压测性能瓶颈"},{"path":"/blog/zh/029-universal-application-topology-instant-generation-via-ebpf/","tags":["演讲实录"],"author":"向阳","date":"2023-04-22","excerpt":"本文为 DeepFlow 在首届云原生社区可观测性峰会上的演讲实录。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202305096459de674b7cb.png","title":"使用 eBPF 零代码修改绘制全景应用拓扑"},{"path":"/blog/zh/031-deepflow-prometheus-o11y/","tags":["Prometheus","AutoTagging"],"author":"林嘉炜","date":"2023-06-05","excerpt":"DeepFlow 增加了 PromQL 支持，可无缝体验 Prometheus 提供的可观测能力，同时，通过 PromQL 结合 DeepFlow 提供的可观测性数据，我们可以打造更有想象力的 Dashboard。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202306016478520979a43.jpg","title":"Prometheus x DeepFlow：打造零插桩的指标体系"},{"path":"/blog/zh/030-deepflow-agent-ebpf-benchmark/","tags":["Benchmark"],"author":"向阳","date":"2023-05-30","excerpt":"DeepFlow 基于 eBPF 实现了零插桩（Zero Code）的云原生应用可观测性，这是一种全新的技术手段，因此不少用户在选型和落地 DeepFlow 的过程中会对它的性能开销存在疑问。到底 Agent 的运行会对业务造成什么样的影响？而 Agent 自身的资源开销又如何？最近我们将 DeepFlow Agent 的自动化测试结果放到了线上 Demo 页面中，本篇文章将结合 Daily Build 的测试数据，系统性的阐述我们的测试方法和测试结果，揭示 Agent 的业务影响和资源开销，帮助大家扫清落地 eBPF 可观测性的最后障碍。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202305316476ae9605e07.png","title":"落地 eBPF 可观测性之 DeepFlow Agent 性能揭秘"},{"path":"/blog/zh/032-deepflow-practical-cases-quickly-identifying-Nginx-latency-bottlenecks/","tags":["直播实录","实践案例"],"author":"李倩","date":"2023-08-15","excerpt":"本次案例为某物流公司在今年 4 月份左右，SRE 通过监控 Nginx 日志，发现一个域名在每天晚上 12 点后存在大量持续 1s 的超时情况，这个问题困扰了用户近一个月。通过查看 DeepFlow 的调用日志，立即排除了业务响应慢的可能性，最终发现问题是 Nginx 自身配置问题导致的。这个案例展示了如何快速的定位 7 层网关时延瓶颈点。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023081564db431d67ee7.jpg","title":"可观测性实战：快速定位 K8s 应用的时延瓶颈"},{"path":"/blog/zh/033-deepflow-quickly-locate-cloud-service-latency-bottlenecks/","tags":["直播实录","实践案例"],"author":"李倩","date":"2023-08-17","excerpt":"本次案例为某智能汽车公司，业务监控告警发现某充电核心服务 SQL 查询时间偶现超过 200ms，对前方用户影响明显。此问题涉及多团队，仅问题定位就持续了将近 1 个星期未有结论，通过 DeepFlow 的调用日志及分布式调用链追踪的能力，快速定位瓶颈点为云网络抖动导致的，进而直接向云厂商提交工单并附带令人信服的证据。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023082164e3069d03700.jpg","title":"可观测性实战：快速定位云服务时延瓶颈"},{"path":"/blog/zh/034-deepflow-rapidly-pinpointing-port-conflict-problems-in-k8s-cni/","tags":["直播实录","实践案例"],"author":"李倩","date":"2023-08-31","excerpt":"某车企的车控业务访问账户系统时无规律偶发连接超时（connection timeout），本案例分享利用 DeepFlow 深度剖析如何分钟级定位 K8s CNI 的 SNAT (Source Network Address Translation) 触发 Node 节点源端口冲突，导致连接服务端异常。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023083164f062fa00d8d.jpg","title":"可观测性实战：快速定位 K8s CNI 端口冲突问题"},{"path":"/blog/zh/035-deepflow-enabling-zero-code-observability-for-applications-by-webAssembly/","tags":["WebAssembly"],"author":"易德贤，李倩","date":"2023-09-08","excerpt":"DeepFlow 利用 eBPF 采集并解析应用协议，实现了零侵扰的分布式追踪和指标数据的采集。DeepFlow 已经内置支持了十多种应用协议的解析，并且还在持续增加中。但我们发现实际业务环境中情况会更加复杂，针对这些复杂场景，DeepFlow 实现了一套零侵扰的 WebAssembly 插件机制，使得开发人员可针对自己的业务环境定制化 DeepFlow 的协议解析能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023090864face46b2850.jpg","title":"使用 DeepFlow Wasm 插件实现业务可观测性"},{"path":"/blog/zh/036-ebpf-the-key-technology-to-observability-zh/","tags":["AutoTracing","APM"],"author":"向阳","date":"2023-09-09","excerpt":"APM Agent 由于其侵扰性，难以在金融、电信、电力等行业的核心业务系统中落地，难以在云原生基础设施中插桩。eBPF 的零侵扰优势很好的解决了这些痛点，是云原生时代实现可观测性的关键技术。DeepFlow 基于 eBPF 的全景图、分布式追踪、持续性能剖析能力已服务于各行各业，帮助金融行业的分布式核心交易系统、电信行业的 5G 核心网、能源行业的分布式电力交易系统、智能网联汽车、云原生游戏服务等快速实现了零侵扰的可观测性，保障了新一代业务和基础设施的持续创新。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2023091164fe9e80cf29f.jpeg","title":"eBPF 是实现可观测性的关键技术"},{"path":"/blog/zh/038-deepflow-redis-troubleshooting/","tags":["AutoTracing","实践案例","Redis","AutoProfiling"],"author":"林嘉炜","date":"2023-10-31","excerpt":"应用连接 Redis 的最佳实践是使用连接池，然而连接池通常会引入很多繁杂的配置。不合理的配置往往会造成性能隐患，并进而导致生产故障。当应用缺乏可观测性时，无法在故障发生前发现隐患，也难以在故障发生时快速定位。本文从一个普通的应用高时延入手，讲述如何使用 DeepFlow 快速定位问题根因。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20231110654de4b3e572e.jpg","title":"可观测性实战：快速定位 Redis 应用高时延问题"},{"path":"/blog/zh/040-practice-of-observability-on-China-Mobile-Panji-PaaS-Platform-based-on-eBPF/","tags":["用户案例","Meetup"],"author":"卢城","date":"2023-11-27","excerpt":"作为中国移动智慧中台的统一技术底座，磐基 PaaS 平台提供了高效的集群管理和调度功能，满足多元化的业务场景需求。该平台携手 DeepFlow 借助 eBPF 技术，解决了 APM 落地困难和组件追踪断路中的挑战，实现了全栈且无侵扰的应用可观测性。磐基 PaaS 平台将 eBPF 数据与现有的可观测数据整合，提供了**开箱即用的应用可观测性，全栈无盲点的调用链追踪等能力**，大大提升了各业务系统云化的底气，并促进了平台本身的快速推广。未来，平台还针对运营商等特定行业场景，进一步深化可观测性数据的融合，并将创新性地拓展其 AI 能力，以增强市场竞争力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20231127656469714987b.jpg","title":"中国移动磐基PaaS平台基于eBPF的应用可观测性建设实践"},{"path":"/blog/zh/039-qcon-2022-in-depth-practice-of-cloud-native-observability-based-on-ebpf/","tags":["AutoTracing","演讲实录"],"author":"向阳","date":"2023-03-30","excerpt":"本文由 InfoQ 整理自云杉网络 DeepFlow 产品负责人向阳在 QCon 全球软件开发大会（北京站）2022 上的演讲分享，主题为“基于 eBPF 的云原生可观测性深度实践”。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/jpg/67e5237bef40f90d2a12f2d9cd1692c7_20231114140924.jpg","title":"基于 eBPF 的云原生可观测性深度实践"},{"path":"/blog/zh/041-weipeitang-constructs-a-zero-intrusive-observable-platform-based-on-deepflow/","tags":["用户案例","Meetup"],"author":"涂永春","date":"2023-12-04","excerpt":"微拍堂电商平台面临成本与性能优化瓶颈、问题定位困难以及业务流梳理困难等挑战，公司运维团队决定构建对业务零侵扰的可观测性平台。评估众多开源解决方案后，选择了基于 eBPF 的 DeepFlow 开源项目作为数据底座，在此基础上针对公司业务需求进行二次开发，实现了完整的用户界面。可观测性平台在试运行过程中得到了研发团队及 SRE 团队的充分认可，开始推进全面上线基于 DeepFlow 二开的零侵扰可观测性平台。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20231205656ee28561326.jpg","title":"微拍堂基于 DeepFlow 建设零侵扰的可观测平台"},{"path":"/blog/zh/042-deepflow-extended-parsing-in-practice/","tags":["用户案例","Meetup"],"author":"郑志聪","date":"2023-12-13","excerpt":"DeepFlow 对于云原生应用来说，完全具备零侵扰的形式提供应用可观测能力，这个能力得益于其基于 eBPF 以零侵扰的方式采集应用数据，并通过解析多种应用及业务协议来实现应用可观测能力，本文通过深入剖析代码流程，用实战的方法介绍 DeepFlow 中两种常见的协议扩展方法：如何从零开始增加支持一种全新的协议（MongoDB），以及如何利用 DeepFlow 的 Wasm Plugin 机制对已有协议（Kafka）的解析能力进行增强，此次分享的 MongoDB 协议及 Kafka 增加的字段都已经合 DeepFlow 6.4 版本，欢迎大家试用。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/jpeg/f80a8465114cd2850afaafaaf33d7b77_20231213101600.jpeg","title":"DeepFlow 扩展协议解析实践"},{"path":"/blog/zh/044-wasm-plugin-performance-tuning/","tags":["Benchmark","WebAssembly","性能调优"],"author":"向阳，易德贤","date":"2023-12-27","excerpt":"在之前的文章「使用 DeepFlow Wasm 插件实现业务可观测性」中，我们介绍了 DeepFlow 中的二次开发利器 —— Wasm Plugin。利用插件，我们可以实现很多个性化的应用协议解析目标，本文介绍 Wasm Plugin 的常见性能调优手段，帮助你编写高性能的协议解析插件。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/jpeg/0b6a26a731b1909e0bdd89f7b7f0d779_20231228185024.jpeg","title":"DeepFlow Wasm Plugin 性能调优实战"},{"path":"/blog/zh/043-how-to-reduce-deepflow-storage-overhead/","tags":["性能调优"],"author":"向阳，李灼锋","date":"2023-12-27","excerpt":"本文介绍如何对 DeepFlow 进行配置以降低 ClickHouse 的存储开销。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/jpeg/e8590b17e507fa2964d964a5a4bc55f7_20231227140908.jpeg","title":"一图了解如何优化 DeepFlow 存储开销"},{"path":"/blog/zh/045-deepflow-metadata-database-transformation-in-practice-PostgreSQL/","tags":["用户案例","PostgreSQL"],"author":"卢城","date":"2024-01-08","excerpt":"本文描述了 DeepFlow Server 用到的 MySQL 数据库改成 PostgreSQL 数据库的改造思路和实现细节。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/png/c47b51aa67a5089db47c5fb23a5915f9_20240108095918.png","title":"DeepFlow 元数据数据库 PostgreSQL 改造实践"},{"path":"/blog/zh/046-zero-code-observability-of-distributed-database-tdsql/","tags":["SQL Database","TDSQL"],"author":"李飞","date":"2024-01-09","excerpt":"分布式数据库市场发展迅速，TDSQL、GuassDB、OceanBase、GoldenDB、TiDB 等各类分布式数据库产品纷纷涌现，尤其在金融行业的落地越来越多。提高分布式数据库的可观测性，提升用户对产品稳定性、可靠性的信心，是金融核心业务云原生化的重要保障。DeepFlow 通过 eBPF 技术零侵扰实现的全景图、分布式追踪和持续剖析等能力为分布式数据库的可观测性建设提供了开创性的新思路。本篇文章以某国有银行分布式核心交易系统为例，介绍 DeepFlow 如何实现 TDSQL 的全链路可观测性，分享如何在客户实践中通过应用、网络、数据库的全栈、全链路统一观测，真实做到 2 至 3 步操作、5 分钟以内的业务异常定界定位。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240109659d1173ae036.jpeg","title":"DeepFlow 零侵扰实现分布式数据库 TDSQL 的全链路可观测性"},{"path":"/blog/zh/048-the-journey-of-observability-based-on-eBPF-in-CMBC/","tags":["用户案例","Meetup"],"author":"冯晶晶","date":"2024-01-23","excerpt":"民生银行通过 DeepFlow 构建了容器/云全路径网络观测能力、eBPF 零侵扰应用观测能力、应用函数监控能力、容器系统指标观测能力，并借助 WebAssembly 技术探索业务观测能力的建设。通过应用、系统、网络的全栈统一观测，民生银行的网络运维团队从网络监控时代迈向全栈主动观测时代，有效提升运维监控能力，提供更加全面、精准、有效、安全的监控服务能力，整体提升了故障定位和根因分析水平。本文讲述了**民生银行的网络运维团队的工程师们在企业全面拥抱云原生的过程中，如何与云杉 DeepFlow 团队携手以 vTap 流量分发为起点**，逐步改变传统网络运维思路，**拥抱分布式流量采集方案，引入 eBPF 零侵扰应用追踪技术**，并积极探索更多观测能力的发展历程。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024012365af7e687e7c4.jpeg","title":"民生银行云原生业务的 eBPF 可观测性建设实践"},{"path":"/blog/zh/047-building-unified-observability-capabilities-for-apisix-using-deepflow/","tags":["AutoTracing","APISIX","Gateway"],"author":"李倩，彭斌","date":"2024-01-12","excerpt":"本文旨在阐述如何利用 DeepFlow 基于 eBPF 的零侵扰特性构建 APISIX 可观测性解决方案，在此基础上统一集成 APISIX 插件已有的丰富数据源，消除孤岛、构建统一的可观测性平台，以全面监控和分析 APISIX 网关。通过 DeepFlow，APISIX 可以实现从流量监控、追踪分析、到性能优化的全面可观测性，消除数据分散并提供中心化的监控视图，加速故障排查和性能调优，让 DevOps 和 SRE 团队的工作更加高效。本文将重点梳理 APISIX 的追踪数据、指标数据、访日日志及性能剖析数据如何对接 DeepFlow。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024011265a09ad8984bb.jpeg","title":"基于 DeepFlow 构建 APISIX 的统一可观测性能力"},{"path":"/blog/zh/049-say-goodbye-to-domain-ssl-certificate-expiry-worries/","tags":["Network","TLS"],"author":"向阳","date":"2024-02-02","excerpt":"域名证书过期会给企业业务带来严重的影响，由证书过期导致的业务停摆事件屡见不鲜，小到创业团队 APP、大到知名大企业核心业务。大量的故障已经证明单纯强调加强管理无济于事，更重要的是自动化监控、告警机制的协助。本文介绍 DeepFlow 的零侵扰解决方案，干脆利落、一网打尽，即刻构建企业内部自有域名、外部依赖域名的全方位无死角监控。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020265bca1fe3beb8.png","title":"舒心！彻底告别域名 SSL 证书过期困扰"},{"path":"/blog/zh/050-ebpf-features-enabled-in-3-10-kernel-host/","tags":["Kernel"],"author":"向阳","date":"2024-02-04","excerpt":"DeepFlow 的 eBPF 特性支持 RedHat/CentOS 的 3.10 内核了！","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020465befb64222d3.png","title":"老乡，内核 3.10 的机器可以跑 eBPF 了！"},{"path":"/blog/zh/051-https-full-stack-distributed-tracing-via-ebpf/","tags":["AutoTracing","TLS","HTTPS"],"author":"向阳","date":"2024-02-05","excerpt":"DeepFlow 支持 TLS 握手消息解析以后，HTTPS 的全栈分布式追踪链路更精细了！","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020565c05a9224309.png","title":"全栈！使用 eBPF 轻松解锁 HTTPS 分布式追踪能力"},{"path":"/blog/zh/052-build-in-sql-and-redis-data-obfuscation/","tags":["SQL Database","Redis"],"author":"向阳","date":"2024-02-06","excerpt":"SQL、Redis 协议数据中可能存在密码、手机号、身份证号等敏感信息，有合规要求的企业通常不允许在采集或分析可观测性数据时暴露此类敏感数据。本文介绍 DeepFlow 内置的 SQL、Redis 协议数据脱敏能力，帮助企业客户安心建设合规的可观测性。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020665c1a85e9c1a7.png","title":"安心！DeepFlow 内置 SQL/Redis 协议数据脱敏能力"},{"path":"/blog/zh/053-high-performance-decoding-of-http2-compressed-headers-using-ebpf-kprobe/","tags":["HTTP2","gRPC"],"author":"向阳","date":"2024-02-07","excerpt":"HTTP2/gRPC 的协议头部使用 HPACK 算法压缩，使得难以从内核系统调用（eBPF kprobe）中获取真实头部字段，因此现有的解决方案通常依赖 eBPF uprobe。本文介绍 DeepFlow 6.4 中基于 eBPF kprobe 的 HTTP2 压缩头高性能解码能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024020765c33cf2b3138.png","title":"硬核！使用 eBPF kprobe 高性能解码 HTTP2 压缩头"},{"path":"/blog/zh/054-cloud-native-database-audit-solution/","tags":["SQL Database"],"author":"向阳","date":"2024-02-20","excerpt":"开放，是 DeepFlow 产品的灵魂。基于 DeepFlow 零侵扰、全栈的数据能力，我们在企业客户处已经落地了一系列安全分析、网络分析、业务分析的解决方案。本文主要介绍基于 DeepFlow 企业版构建的数据库审计云原生解决方案，以及在 6.4 版本中的 3X 性能提升。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024022065d410b4cd386.png","title":"开放！云原生的数据库审计解决方案"},{"path":"/blog/zh/056-out-of-the-Box-ready-to-use-application-observability-dashboard/","tags":["Grafana"],"author":"李倩","date":"2024-03-08","excerpt":"收到一批社区用户的使用建议后，我们在 DeepFlow 6.4 社区版中新增了一个简洁易用的「开箱即用」 Dashboard。当用户初次安装 DeepFlow、业务变更、扩容缩容时，随时都可以查看这个 Dashboard，及时发现应用的性能和稳定性隐患，深刻感受基于 eBPF 的零侵扰可观测性带来的便捷。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024030865eac6983ea06.png","title":"开箱即用！随时就绪的应用可观测性 Dashboard"},{"path":"/blog/zh/057-the-current-status-and-future-of-zero-code-distributed-tracing-with-ebpf/","tags":["AutoTracing","演讲实录"],"author":"向阳","date":"2024-03-18","excerpt":"本文为 DeepFlow 在第 23 期得物技术沙龙上的演讲实录。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024031965f9882ecbab8.jpeg","title":"eBPF 零侵扰分布式追踪的进展和探索"},{"path":"/blog/zh/058-out-of-the-box-the%20case%20of%20China-Mobile's-Panji-PaaS-platform/","tags":["用户案例"],"author":"卢城","date":"2024-03-20","excerpt":"在上一篇文章【中国移动磐基PaaS平台基于eBPF的应用可观测性建设实践】中分享了中国移动磐基 PaaS 平台如何将 eBPF 数据与现有的可观测数据整合，提供了开箱即用的应用可观测性，全栈无盲点的调用链追踪等能力。本篇文章将主要介绍开箱即用的可观测性能力如何快速实现故障定界、高效发现性能隐患。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024032065fa70eb87757.jpg","title":"开箱即用的 eBPF 可观测性：中国移动磐基 PaaS 平台案例"},{"path":"/blog/zh/059-tencent-games-achieves-zero-code-observability%20-based-on-deepflow/","tags":["用户案例"],"author":"封亚飞, 陈自欣","date":"2024-03-27","excerpt":"腾讯不仅致力于开发广受欢迎的自研游戏，还与世界各地的知名游戏开发商合作，负责将这些游戏推向市场，让更多玩家享受游戏的乐趣。这些合作伙伴来自全球各地，使用多种多样的技术栈，这为游戏的稳定性维护提出了复杂的挑战。本文旨在探讨腾讯互娱如何利用 DeepFlow 的 eBPF 技术实现无侵入式的可观测性，这一策略不仅确保了游戏渐进式发布过程中的流畅用户体验，还加快了问题的诊断与解决，有效预防了潜在的性能问题。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202403276603b9623b417.jpg","title":"腾讯游戏基于 DeepFlow 的零侵扰可观测性进阶实战"},{"path":"/blog/zh/061-ebpf-and-llm-the-infra-for-observability-ai-agents/","tags":["演讲实录","LLM"],"author":"向阳","date":"2024-04-12","excerpt":"本文整理自云杉网络 DeepFlow 产品负责人向阳在 QCon 全球软件开发大会（北京站）2024 上的演讲分享，主题为「eBPF + LLM：实现可观测性智能体的基础设施」。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240520664a261438497.png","title":"eBPF + LLM：实现可观测性智能体的基础设施"},{"path":"/blog/zh/060-tidb-full-stack-observability-base-on-deepflow/","tags":["AutoTracing","SQL Database","TiDB"],"author":"李飞","date":"2024-04-29","excerpt":"作为一款优秀的开源分布式数据库软件，TiDB 得到越来越多的用户关注和应用，但在运维保障过程中同样面临着运维孤岛、定界定位难、获取可观测性数据开销大等挑战，本文总结了 TiDB 用户如何基于 DeepFlow 构建全栈可观测性的最佳实践，包括如何用 DeepFlow 高性能、零侵扰的可观测技术消除全链路追踪在 TiDB 侧的盲区，如何在 DeepFlow 中统一观测业务全景、SQL 事务全过程、网络性能、系统资源性能、文件读写性能、应用函数性能，从而为 TiDB 及其上应用构建出统一、立体、全方位的可观测性能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240428662e01da6c0e1.png","title":"基于 DeepFlow 的 TiDB 全栈全链路可观测性最佳实践"},{"path":"/blog/zh/062-observability-practices-for-tencent-cloud-services-based-on-deeflow/","tags":["实践案例","Cilium","用户案例","Pixie"],"author":"吴宗霖","date":"2024-05-31","excerpt":"本文分享了腾讯云某业务基于 DeepFlow 的可观测性实践。面对复杂的业务服务（800+）和多样的编程语言，腾讯云某业务团队选择了 DeepFlow 作为跨语言、无侵入的可观测技术。与其他技术（如 Hubble 和 Pixie）相比，DeepFlow 在数据指标、协议支持和扩展能力等方面表现优异，成为最佳选择。引入 DeepFlow 后，腾讯云通过与现有系统的集成，实现了统一的服务性能监控和高效的故障排查能力，显著提升了运维效率，甚至能主动发现业务隐藏的 Bug，防范于未然。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202405316659435a6817d.jpg","title":"腾讯云某业务基于 DeepFlow 的可观测性实践"},{"path":"/blog/zh/065-autotracing-supports-brpc-enhance-grpc-dubbo-http/","tags":["Dubbo","gRPC","bRPC","HTTP"],"author":"向阳","date":"2024-06-13","excerpt":"v6.5 新特性解读：AutoTracing 对 RPC/HTTP 类型的协议进行了增强。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240613666ab84acd2f2.jpeg","title":"AutoTracing - 支持 bRPC 协议，增强 gRPC、Dubbo、HTTP 协议"},{"path":"/blog/zh/064-resolving-the-confusion-in-apisix-troubleshooting-with-deepflow/","tags":["AutoTracing","APISIX","Gateway","实践案例"],"author":"李飞","date":"2024-06-04","excerpt":"APISIX 被越来越多的用户选择作为 IT 应用系统的入口，由于故障定界能力的缺失，在 IT 业务故障诊断过程中，APISIX 经常成为重点“怀疑对象”，一方面“劳师动众”投入大量运维人力定位，另一方面诊断方向“南辕北辙”，因而业务故障“久拖不决”。通过本篇文章复盘重现某全球领先的智能终端提供商近期对核心业务响应时延劣化故障的处理过程，您将直观了解到“南辕北辙”现象对诊断效率的决定性影响，以及 DeepFlow 可观测性平台如何用数分钟时间、几步简单操作，消除 APISIX 故障诊断中的“南辕北辙”，解决长达两个月悬而未决的问题，为故障处置效率带来飞跃提升。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202405296656cdff2904b.jpg","title":"使用 DeepFlow 消除 APISIX 故障诊断中的“南辕北辙”"},{"path":"/blog/zh/063-building-unified-observability-for-kong-with-deepflow/","tags":["AutoTracing","Gateway","Kong"],"author":"李倩, 彭斌","date":"2024-06-04","excerpt":"本文将介绍如何使用 DeepFlow 基于 eBPF 的零侵扰特性构建 Kong 网关的可观测性解决方案，在此基础上统一集成 Kong 插件已有的丰富数据源，消除孤岛、构建统一的可观测性平台，以全面监控和分析 Kong 网关。通过 DeepFlow，Kong 网关可以实现从流量监控、追踪分析、到性能优化的全面可观测性，消除数据分散并提供中心化的监控视图，加速故障排查和性能调优，让 DevOps 和 SRE 团队的工作更加高效。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240604665e7510bc4e2.jpg","title":"基于 DeepFlow 构建 Kong 的统一可观测性能力"},{"path":"/blog/zh/066-autotracing-mq-plus-plus-pulsar-nats-activemq-rabbitmq-zeromq/","tags":["Pulsar","NATS","ActiveMQ","RabbitMQ","ZeroMQ"],"author":"向阳","date":"2024-06-14","excerpt":"v6.5 新特性解读：AutoTracing 支持的消息队列协议大爆发，新增了对 Pulsar、NATS、ActiveMQ、RabbitMQ、ZeroMQ 的支持。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240614666bfe627f94e.jpg","title":"AutoTracing - 消息队列++，Pulsar、NATS、ActiveMQ、RabbitMQ、ZeroMQ"},{"path":"/blog/zh/067-webassembly-plugin-supports-more-protocol-enhancements/","tags":["Dubbo","WebAssembly","NATS","ZeroMQ","nRPC"],"author":"向阳","date":"2024-06-15","excerpt":"v6.5 新特性解读：WebAssembly（Wasm）插件支持了对更多协议的增强，包括 Dubbo、NATS、ZeroMQ。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240614666bfe60eb1b2.jpg","title":"AutoTracing - WebAssembly 插件支持增强更多协议"},{"path":"/blog/zh/068-autotracing-enhance-sql-command-collection/","tags":["MySQL","SQL Database"],"author":"向阳","date":"2024-06-16","excerpt":"v6.5 新特性解读：支持采集 MySQL 预编译语句的参数值，支持采集登录 MySQL 的用户名、使用的数据库名。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240614666c01ec83f6c.jpeg","title":"AutoTracing - 支持采集 SQL 预编译参数值、登录用户名等信息"},{"path":"/blog/zh/069-off-cpu-profiling-release/","tags":["AutoProfiling","Stella"],"author":"向阳","date":"2024-06-17","excerpt":"v6.5 新特性解读：企业版支持 Off-CPU 持续剖析，用于排查业务性能不达预期但 CPU 用量却不高的问题。另外，v6.5 中也增加了 Stella （DeepFlow 的 AI 智能体）对持续剖析数据的分析能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240617666fb0c004f32.png","title":"AutoProfiling - 新增 Off-CPU 持续剖析并支持 AI 智能体分析"},{"path":"/blog/zh/071-kafka-prometheus-opentelemetry-exporter/","tags":["OpenTelemetry","Prometheus","Kafka"],"author":"向阳","date":"2024-06-17","excerpt":"v6.5 新特性解读：新增 Kafka Exporter，增强 Prometheus Remote Write 和 OpenTelemetry Exporter。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240617666fb0c6672de.png","title":"Exporter - 新增 Kafka，增强 Prometheus 和 OpenTelemetry"},{"path":"/blog/zh/070-improve-and-speedup-autotagging/","tags":["AutoTagging"],"author":"向阳","date":"2024-06-17","excerpt":"v6.5 新特性解读：AutoTagging 的能力和实时性大幅提升。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240617666fb0c2981a2.png","title":"AutoTagging - 更强大、更实时的标签自动注入能力"},{"path":"/blog/zh/072-reliability-agent-server-circuit-breaker-and-protection/","tags":["Reliability"],"author":"向阳","date":"2024-06-17","excerpt":"v6.5 新特性解读：DeepFlow 自身增加了一系列熔断、资源限制等防护机制，并且新增了系统告警分析 Dashboard 供管理员快速处置系统自身的告警。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240617666fb0c39788c.png","title":"Reliability - 增强熔断等防护机制，增加告警分析 Dashboard"},{"path":"/blog/zh/073-qimaitech-x-deepflow-observability-practices-behind-explosive-business-growth/","tags":["实践案例","用户案例"],"author":"闻长明","date":"2024-07-04","excerpt":"企迈科技是数字化门店 SaaS 服务的领先者，通过全渠道连接门店与顾客，提升经营效率和竞争力。近几年业务规模迅速扩大，技术架构面临性能和稳定性挑战，促使企迈引入 DeepFlow 作为可观测性平台，通过 eBPF 技术实现零侵扰的数据采集和分析。DeepFlow 帮助企迈优化性能、快速定位问题，并通过全栈调用链追踪和持续性能剖析提升服务质量。未来，企迈计划进一步融合 eBPF 数据与其他监控数据，构建全栈一体化平台，并加强与 DeepFlow 社区合作，推动可观测性技术进步。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240704668655af07e54.jpg","title":"企迈科技 x DeepFlow：爆发式增长业务背后的可观测性平台实践"},{"path":"/blog/zh/074-deepflow-observability-data-the-keystone-of-aiops/","tags":["演讲实录","Stella"],"author":"李飞","date":"2024-07-19","excerpt":"用 AI 实现 Ops 来解决运维困境一直是 IT 界的梦想，大模型的出现让 AIOps 看起来近在咫尺，但深入分析历史我们会发现运维中的数据盲区、数据孤岛、数据关联、获取成本等问题是运维诊断难以模型化、AIOps 难以实现的根本原因。本篇文章总结了云杉网络 DeepFlow 解决方案负责人李飞在“智能可观测运维技术 MeetUp”的演讲内容，向您介绍 DeepFlow 可观测性平台如何通过 eBPF 技术带来的零侵扰、全栈采集能力消除数据盲区，通过 AutoTagging 技术带来的高性能数据统一标注能力消除数据孤岛，通过高质量的可观测性数据体系构建基于数据的运维能力，消灭运维中的猜测、直觉和灵感，打造 AIOps 落地应用的稳定基石，以及通过大模型智能体对 DeepFlow 可观测性数据分析取得的进展和效果。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20240719669a193fd3d93.png","title":"DeepFlow 零侵扰数据能力构建 AIOps 的基石"},{"path":"/blog/zh/075-finance-deepflow-achieving-99-9-sre-slo/","tags":["实践案例","用户案例"],"author":"某金融科技公司 SRE Team","date":"2024-07-24","excerpt":"某金融科技公司是一家位于新加坡全球领先的金融交易科技提供商，目前主要面临的挑战是确保交易系统的高可用性（99.9%）和低延迟（50ms）。为此，某金融科技公司引入了 DeepFlow 可观测性平台，实现零侵扰的全栈监控，快速定位和解决问题，显著提升了运维效率。通过构建 SRE 黄金指标视图，团队能够实时监控和分析服务运行状态，确保系统的高性能和可靠性。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024090366d6b768058e1.jpg","title":"某金融科技公司 x DeepFlow：如何实现 SRE 99.9% 服务级别目标 (SLO)"},{"path":"/blog/zh/077-the-blackbox-integration-and-observability/","tags":["Prometheus","实践案例"],"author":"李飞","date":"2024-08-08","excerpt":"在本篇实践案例中，将向您介绍如何在 DeepFlow 可观测性平台快速集成 Prometheus Blackbox 拨测能力，补充、丰富可观测性数据湖的信号种类，一方面通过 HTTP/HTTPS/TCP/ICMP 等协议拨测快速发现业务异常，另一方面在业务异常的诊断过程中，对平台侧应用指标分析的同时，快速调阅拨测的指标数据，增强 IT 系统监控、诊断的全面性和工作效率。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024081966c2dd4c9b181.jpg","title":"DeepFlow 最佳实践 —— Blackbox 拨测能力集成及统一观测"},{"path":"/blog/zh/078-the-nvidia-gpu-metrics-integration-and-observation/","tags":["Prometheus","实践案例"],"author":"李飞","date":"2024-08-15","excerpt":"在本篇实践案例中，将向您介绍如何在 DeepFlow 可观测性平台快速集成 NVIDIA GPU 指标数据，补充、丰富可观测性数据湖的信号种类，面向 AI 智算场景提供 GPU 指标与主机指标、应用调用指标的统一观测能力，提升 AI 智算应用的质量监控、故障诊断能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024081966c2dd3f519c9.jpg","title":"DeepFlow 最佳实践 —— NVIDIA GPU 指标数据集成及统一观测"},{"path":"/blog/zh/079-java-application-hang-troubleshooting-by-deepflow-stella/","tags":["实践案例","AutoProfiling","Stella"],"author":"李飞、张祥祥","date":"2024-09-03","excerpt":"Java 程序 Hang 是应用运维中经常遇到的故障类型，由于此类故障与操作系统调度、应用代码逻辑等均有复杂的相互催化关系，故障触发条件极难确定，因此也是故障诊断中最难啃的骨头之一。在此篇案例中您将看到，某银行在分布式核心系统“认证网关 Hang” 故障的诊断过程中，如何使用 DeepFlow 大模型智能体快速分析 Java 程序 CPU 持续剖析数据，在故障发生后 3 分钟内迅速定位出 Hang 的原因。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024090466d7cfbc80c50.jpg","title":"DeepFlow 大模型智能体 3 分钟定位 Java 程序 Hang 故障"},{"path":"/blog/zh/076-the-unix-metrics-integration-and-observability/","tags":["Prometheus","实践案例"],"author":"李飞","date":"2024-08-08","excerpt":"在本篇实践案例中，将向您介绍如何在 DeepFlow 可观测性平台快速集成主机指标数据，补充、丰富可观测性数据湖的信号种类，在业务异常的诊断过程中，对应用指标监测、分析的同时，快速调阅主机指标数据，快速分析业务异常与主机指标的关联关系，增强 IT 系统监控、诊断的全面性和工作效率。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024081966c2dd3f82eb2.jpg","title":"DeepFlow 最佳实践 —— 主机指标数据集成及统一观测"},{"path":"/blog/zh/080-from-deployment-to-optimization-Futu-securities'-DeepFlow-exploration-journey/","tags":["实践案例","eBPF","链路监控"],"author":"姜远川","date":"2024-09-04","excerpt":"本文分享了富途证券引入基于 eBPF 的可观测性方案 DeepFlow，以应对传统 APM 所面临的诸如代码侵入性强和覆盖不全面等挑战的过程。在 TKE 超级节点等复杂场景的落地过程中，我们与社区密切合作，解决了多项兼容性和性能问题。通过 DeepFlow，我们快速定位了一个 DNS 解析引起的 MySQL 超时故障，验证了该方案的价值。未来，我们计划将内部观测平台和 DeepFlow 相结合，以持续拓展其应用场景并优化现有监控路径。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024090466d810106f1a9.jpg","title":"从部署到优化：富途证券的 DeepFlow 探索之旅"},{"path":"/blog/zh/081-locate-the-java-io-thread-in-3-min-by-deepflow-tracing/","tags":["AutoTracing","实践案例"],"author":"李飞、陈鹏宇","date":"2024-09-14","excerpt":"I/O 线程阻塞是Java 程序经常出现的问题之一，此类故障发生时 Java 程序的请求、响应在 I/O 线程向操作系统 Socket Buffer 读/写过程中发生阻塞，由于在业务代码插桩无法观测到 I/O 线程的工作情况和性能表现，因而导致故障非常隐蔽和难以诊断定位。通过本篇案例您将了解到，某银行的开发工程师如何使用 eBPF 技术带来的零侵扰追踪能力，在某次分布式核心交易系统上线信创平台的非功能测试（性能压测）故障诊断中，用 3 分钟时间锁定 Java 程序 I/O 线程阻塞。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024091866ea4fa966a6e.jpg","title":"eBPF 零侵扰分布式追踪 3 分钟锁定 Java 程序 I/O 线程阻塞"},{"path":"/blog/zh/082-kingsoft-office-zero-code-observability-practice-based-on-deepflow/","tags":["演讲实录","实践案例"],"author":"肖圆","date":"2024-09-18","excerpt":"金山私有化项目在可观测性建设中，面临数据孤岛和缺乏全局视图的挑战，影响了问题排查效率。为此，引入 DeepFlow 和 eBPF 技术，打通了指标、追踪和日志数据的联动，提供了全局微服务调用关系。通过分阶段建设，已完成第一期目标，实现了从被动排障到主动观测的转变，提升了系统稳定性和运维效率。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024091866ea51946f8b3.png","title":"金山办公基于 DeepFlow 的零侵扰可观测性实践"},{"path":"/blog/zh/083-lock-db-in-3-min-during-trouble-shooting/","tags":["AutoTracing","SQL Database","实践案例"],"author":"李飞、陈鹏宇","date":"2024-09-30","excerpt":"金融行业信创迁移过程中，故障定界困难、定位周期长、开发测试速度缓慢、生产运行风险高等因素正在不断地拖慢相关工作的效率和速度。如何让金融科技部门的业务信创迁移更快、更高效、更平滑？DeepFlow 通过 eBPF 带来的零侵扰、全栈、全链路可观测性技术，可以大幅度提升信创全系统的可观测性，从根本上扫除信创道路的技术阻碍。通过本篇案例您将了解到，某股份制银行在分布式核心交易业务向信创平台迁移的开发测试过程中，如何通过 DeepFlow 平台仅用 3 分钟时间将问题根因锁定到分布式核心数据库，快速消除不同运维技术栈之间的定位分歧，快速解决故障，加速开发测试速度。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/202410086704ee57e4be4.jpg","title":"故障诊断 3 分钟锁定分布式核心数据库，加速金融科技信创开发、测试、迁移"},{"path":"/blog/zh/084-ebpf-observability-lock-the-unknown-file-source/","tags":["实践案例","用户案例"],"author":"李飞","date":"2024-10-12","excerpt":"在某国有银行的信创云日常运维中，发现大量未知的垃圾文件，存在严重的系统运行隐患，其承载的分布式核心交易系统的运行稳定性随时可能受到影响，运维人员尝试寻找产生垃圾文件的源程序，但却发现传统监控工具对未知程序在未知时间、未知节点、未知路径，写入未知文件的故障诊断并不是一件容易的事情，而 DeepFlow 使用 eBPF 技术实现的可观测性可以为运维人员提供纤毫毕现的文件读写观测能力，让此类问题的诊断定位变得极其轻松。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20241014670cc1b0b1eb2.jpg","title":"eBPF 可观测性技术 3 分钟锁定银行信创云垃圾文件罪魁祸首"},{"path":"/blog/zh/085-lock-tcp-timeout-setting-issue-in-3-minutes-by-deepflow/","tags":["实践案例","用户案例"],"author":"李飞","date":"2024-10-29","excerpt":"某银行分布式核心交易系统运行过程中，遇到了偶发性、无规律的交易失败，由于交易请求海量、通信关系复杂、App 实例动态等系统特点，传统监控工具的诊断能力受限，此类故障诊断极其困难。但在本篇案例中，您将看到 DeepFlow 可观测平台提供的 Full Stack（全栈）、End to End（全链路）、Any Request（每一次应用调用）观测能力，精细化分析每一次失败交易的端到端过程，用 3 分钟时间、5 步操作，通过可观测性数据客观诊断出故障根因。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2024103067223a62203bc.jpg","title":"3 分钟诊断 Tomcat TCP 超时参数配置错误引发的概率性交易失败"},{"path":"/blog/zh/087-slow_call_troubleshooting_efficiently_locating_service_mesh_sidecar_performance_bottleneck/","tags":["实践案例","用户案例"],"author":"李倩，李威利","date":"2025-01-06","excerpt":"某车企在测试新业务时，发现某测试集群（A-Test-Cluster）的请求响应时间异常，而业务 POD 内部响应正常，初步排除业务逻辑问题后，故障被定位为网络层面性能瓶颈。本次案例揭示了复杂异构测试环境中的两大挑战：底层架构的“黑盒化”导致根因难以识别，以及架构的多样性（如服务网格和定制化代理）加剧了问题排查的复杂性。通过引入 DeepFlow 的全栈可观测性能力，利用 eBPF 技术追踪请求全生命周期，结合拓扑分析、调用日志和持续剖析，精准定位问题源头为 Sidecar 代理在处理 304 响应时的阻塞缺陷。经过研发团队修复，问题得以解决。本案例展示了 DeepFlow 在复杂环境中快速定界故障的强大能力，其中立、全面的观测数据和跨层级的追踪能力显著提升了性能问题的定位与解决效率，为异构架构下的故障排查提供了可靠支持。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20250106677ba786e8ebc.png","title":"慢调用排查实录：高效定界服务网格 Sidecar 性能瓶颈"},{"path":"/blog/zh/086-deep-analysis-how-does-deepflow-collect-business-metrics-for-industry-big-models/","tags":["实践案例","用户案例"],"author":"中移磐基团队","date":"2024-11-07","excerpt":"为高质量支撑 2024 年客服大模型商用，中国移动构建了客服大模型“混合云”生产环境，确保大模型应用安全稳定运行、智算资源高效利用。面对当前跨云调用拓扑的复杂性，以及运维保障与业务运营中服务质量观测指标的缺失问题，多团队共同合作基于 eBPF 与 Wasm  技术构建客服大模型生产运行态可观测能力。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20241108672d8469226eb.png","title":"深度解析 DeepFlow 如何采集大模型服务的业务指标"},{"path":"/blog/zh/088-deepflow-ai-agent/","tags":["白皮书","智能体"],"author":"云杉网络","date":"2025-02-28","excerpt":"随着大型语言模型（LLM）日臻成熟，AI 智能体（AI Agent）从概念走向实际应用的时代已然到来。在众多的智能体使用场景中，可观测性天然具备智能体成功落地的三大要素：高质量的结构化数据、功能丰富的专业工具，以及明确的业务目标——保障系统稳定性。通过将先进的 AI 技术与可观测性场景融合，DeepFlow 智能体能够自主感知环境、推理决策并执行任务，为 IT 团队提供从日常巡检到快速诊断的全方位支持。这不仅提升了运维效率，更将 IT 人员从繁琐的日常任务中解放出来，使他们能够紧跟技术趋势，驾驭先进的 AI 工具，为业务连续性提供更坚实的保障。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/png/476756f92495340af0c0779cb716835d_20250327164636.png","title":"DeepFlow 智能体发布！开启业务连续性保障新时代"},{"path":"/blog/zh/090-deepflow_mcp_server_first_ebpf_mcp_server_release/","tags":["智能体","AI","MCP"],"author":"李倩","date":"2025-06-26","excerpt":"今日，DeepFlow 社区版 MCP Server 正式发布，这也是业界首个 eBPF MCP Server。本文将会介绍 DeepFlow MCP Server 在应用性能管理中的使用场景，覆盖开发测试、业务巡检、故障诊断、成本优化全生命周期。未来已来，DeepFlow MCP Server 即将开启应用性能管理的智能化新时代！","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/png/b1225dd1b3a7cdefb0c8eb6f11af96be_20250626140804.png","title":"首个 eBPF MCP Server！DeepFlow 推动应用性能管理全周期智能化"},{"path":"/blog/zh/089-deepflow_observability_practices_in_tencent_tke_internal_platform/","tags":["用户案例","可观测性","meetup 实录"],"author":"赵奇圆","date":"2025-04-27","excerpt":"随着云原生技术的快速发展，越来越多的业务采用微服务架构，并将服务迁移至 Kubernetes（K8s）环境。微服务化虽然提升了单个服务的可维护性和业务开发效率，却同时增加了服务之间的依赖复杂度。一旦出现问题，往往需要耗费精力梳理业务架构来定位故障点。K8s 虽然提供了服务发现等能力，让业务方可更专注于业务逻辑，但这类功能的实现分布在各个节点或者 Pod 之中，一旦出现异常，要花费大量时间摸排问题点。为了解决这一痛点并强化业务可观测性，本文将介绍 DeepFlow 在腾讯 TKE 内部平台上的实践经验。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/jpg/9f51552b11f9d48d1aa47638aceefcfb_20250427173303.jpg","title":"DeepFlow 在腾讯 TKE 内部平台的可观测性实践"},{"path":"/blog/zh/091-DeepFlow_Highlights_AI-Powered_Observability_for_Financial_Systems_at_SIGCOMM/","tags":["智能体","AI","客户案例"],"author":"马克","date":"2025-09-25","excerpt":"在美国计算机协会（ACM）旗舰会议 SIGCOMM 2025 的首届 Next-Generation Network Observability (NGNO) Workshop 上，云杉网络与中国某头部保险集团展示“基于 DeepFlow 智能体的IT健康评估和故障诊断平台”，成为全球产学研关注的焦点。","cover":"http://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/yunshan-ticket/png/3913291c49e99a6ff2505353396c29c2_20251219124307.png","title":"DeepFlow 携手保险巨头亮相 SIGCOMM，展示 AI 可观测性赋能金融系统"},{"path":"/blog/zh/092-improve-the-quality-of-oa-service/","tags":["实践案例","OA 系统","Java"],"author":"小维","date":"2026-02-11","excerpt":"本文深入探讨了 DeepFlow全栈可观测性平台在企业核心OA系统中的实战应用。针对某大型客户OA系统长期存在的响应迟缓、偶发故障等顽疾，DeepFlow 通过零侵扰数据采集技术，构建了从网关到应用、数据库的全景拓扑与实时告警体系。在一次典型的工单审批功能卡顿事件中，运维团队利用“全景拓扑——&gt;应用调用回溯——&gt;代码剖析——&gt;大模型诊断”的闭环能力，在 3 分钟内精准锁定了Java程序GC异常的根因。该实践不仅大幅提升了IT运维效率，更有效保障了关键用户的办公体验，为企业数字化转型的服务质量优化提供了专业技术标杆。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/20260211698c2ca71b6db.jpg","title":"DeepFlow 全栈可观测平台赋能企业 OA 系统服务质量提升"},{"path":"/blog/zh/092-the-cost-of-missing-full-stack-observability-a-19-hour-outage-case-study/","tags":["故障复盘","AIOps","业务连续性"],"author":"小维","date":"2026-04-22","excerpt":"2026 年 4 月 21 日，拥有逾亿用户的\"民航版 12306\"航旅纵横发生系统性故障，整整 19 个小时，无数旅客在机场陷入\"行程页空白、电子登机牌刷不出\"的窘境。这不是一次孤立的技术事故，而是一面镜子——折射出当前大量IT业务系统在可观测性建设上的深层缺口。","cover":"https://yunshan-guangzhou.oss-cn-beijing.aliyuncs.com/pub/pic/2026042369e97f86923fd.png","title":"航旅纵横崩了19小时——业务全栈全链路可观测性缺失的代价"}];
+    const totalList = [{"path":"/blog/037-ebpf-the-key-technology-to-observability-en/","title":"eBPF: The Key Technology to Observability"},{"path":"/blog/055-unlock-all-in-one-observability-for-apisix-with-deepflow/","title":"Unlock All-in-One Observability for APISIX with DeepFlow"},{"path":"/blog/065-building-unified-observability-for-kong-with-deepflow-en/","title":"Building Unified Observability for Kong with DeepFlow"},{"path":"/blog/zh/001-a-new-era-of-automated-observability/","title":"开启高度自动化的可观测性新时代"},{"path":"/blog/zh/002-use-sealos-to-enable-observability-of-kubernetes-apps-with-one-command/","title":"使用 sealos 一键开启 Kubernetes 应用的可观测性"},{"path":"/blog/zh/003-use-otel-to-receive-skywalking-agent-trace-data/","title":"使用 OpenTelemetry 零代码修改接收 SkyWalking 追踪数据"},{"path":"/blog/zh/004-enable-highly-automated-microservice-observability-in-kubesphere/","title":"在 KubeSphere 中开启高度自动化的微服务可观测性"},{"path":"/blog/zh/005-autologging-for-request-log-and-flow-log/","title":"DeepFlow AutoLogging：自动采集应用调用日志和流日志"},{"path":"/blog/zh/006-build-observability-platorm-based-on-open-source-components/","title":"基于开源的全栈全链路可观测性建设实践"},{"path":"/blog/zh/006-enable-the-observability-of-kube-ovn-CNI-environment/","title":"开启 Kube-OVN CNI Kubernetes 集群的可观测性"},{"path":"/blog/zh/007-skywalking-distributed-tracing-without-blind-spots/","title":"DeepFlow 让 SkyWalking 分布式追踪无盲点"},{"path":"/blog/zh/008-standardizing-prometheus-telegraf-labels-to-break-data-silos/","title":"告别数据孤岛：DeepFlow AutoTagging 之 Prometheus 标签标准化"},{"path":"/blog/zh/009-use-deepflow-as-the-backend-of-skywalking-to-eliminate-blind-spots/","title":"使用 DeepFlow 作为 SkyWalking 的后端，消除观测盲点"},{"path":"/blog/zh/010-grafana-deepflow-dashboard-for-k8s-ingress/","title":"使用 DeepFlow 开启 Ingress 可观测性"},{"path":"/blog/zh/011-why-it-systems-need-observability/","title":"IT系统为什么需要可观测性"},{"path":"/blog/zh/012-build-a-unified-cloud-native-application-observability-data-platform/","title":"构建统一的云原生应用可观测性数据平台"},{"path":"/blog/zh/013-grafana-deepflow-dashboard-db/","title":"使用 DeepFlow 开启 MySQL 可观测性"},{"path":"/blog/zh/014-the-importance-of-metadata-in-observability/","title":"论元数据在可观测性中的重要性"},{"path":"/blog/zh/015-deepflow-uses-spot-Instances-to-speed-up-github-action-exploration/","title":"DeepFlow 使用 Spot 实例加速 GitHub Action 的探索"},{"path":"/blog/zh/016-gitlabci-use-aliyun-eci/","title":"使用 Spot 实例打造低成本高性能无限并发的 Gitlab Runner"},{"path":"/blog/zh/017-grafana-deepflow-dashboard-dns/","title":"使用 DeepFlow 开启 DNS 可观测性"},{"path":"/blog/zh/018-the-practice-of-automatically-implementing-observability-based-on-ebpf/","title":"DeepFlow 基于 eBPF 的高度自动化可观测性实践"},{"path":"/blog/zh/019-deepflow-grafana-plugin-development/","title":"DeepFlow Grafana 插件开发实践"},{"path":"/blog/zh/020-k8s-service-exception-troubleshooting/","title":"K8s 服务异常排障过程全解密"},{"path":"/blog/zh/021-grafana-deepflow-dashboard-for-redis/","title":"使用 DeepFlow 开启 Redis 可观测性"},{"path":"/blog/zh/022-autotagging-10x-performance-improvement/","title":"DeepFlow AutoTagging 10x 性能提升实战"},{"path":"/blog/zh/023-troubleshooting_of_the_k8s_application_with_%20deepflow/","title":"可观测性实战：快速定位 K8s 应用故障"},{"path":"/blog/zh/024-analysis_of_delay_with_deepflow/","title":"应用响应时延背后深藏的网络时延"},{"path":"/blog/zh/025-network_observability_of_k8s/","title":"K8s 应用的网络可观测性： Cilium vs DeepFlow"},{"path":"/blog/zh/026-traditional-APMs-use-deepflow-to-enhance-data/","title":"利用 DeepFlow 为传统 APM 开启全栈追踪能力"},{"path":"/blog/zh/027-grafana-deepflow-dashboard-dubbo/","title":"使用 DeepFlow 开启 Dubbo 可观测性"},{"path":"/blog/zh/028-service_map_observation_performance_test/","title":"使用全景拓扑持续跟踪云原生应用的压测性能瓶颈"},{"path":"/blog/zh/029-universal-application-topology-instant-generation-via-ebpf/","title":"使用 eBPF 零代码修改绘制全景应用拓扑"},{"path":"/blog/zh/031-deepflow-prometheus-o11y/","title":"Prometheus x DeepFlow：打造零插桩的指标体系"},{"path":"/blog/zh/030-deepflow-agent-ebpf-benchmark/","title":"落地 eBPF 可观测性之 DeepFlow Agent 性能揭秘"},{"path":"/blog/zh/032-deepflow-practical-cases-quickly-identifying-Nginx-latency-bottlenecks/","title":"可观测性实战：快速定位 K8s 应用的时延瓶颈"},{"path":"/blog/zh/033-deepflow-quickly-locate-cloud-service-latency-bottlenecks/","title":"可观测性实战：快速定位云服务时延瓶颈"},{"path":"/blog/zh/034-deepflow-rapidly-pinpointing-port-conflict-problems-in-k8s-cni/","title":"可观测性实战：快速定位 K8s CNI 端口冲突问题"},{"path":"/blog/zh/035-deepflow-enabling-zero-code-observability-for-applications-by-webAssembly/","title":"使用 DeepFlow Wasm 插件实现业务可观测性"},{"path":"/blog/zh/036-ebpf-the-key-technology-to-observability-zh/","title":"eBPF 是实现可观测性的关键技术"},{"path":"/blog/zh/038-deepflow-redis-troubleshooting/","title":"可观测性实战：快速定位 Redis 应用高时延问题"},{"path":"/blog/zh/040-practice-of-observability-on-China-Mobile-Panji-PaaS-Platform-based-on-eBPF/","title":"中国移动磐基PaaS平台基于eBPF的应用可观测性建设实践"},{"path":"/blog/zh/039-qcon-2022-in-depth-practice-of-cloud-native-observability-based-on-ebpf/","title":"基于 eBPF 的云原生可观测性深度实践"},{"path":"/blog/zh/041-weipeitang-constructs-a-zero-intrusive-observable-platform-based-on-deepflow/","title":"微拍堂基于 DeepFlow 建设零侵扰的可观测平台"},{"path":"/blog/zh/042-deepflow-extended-parsing-in-practice/","title":"DeepFlow 扩展协议解析实践"},{"path":"/blog/zh/044-wasm-plugin-performance-tuning/","title":"DeepFlow Wasm Plugin 性能调优实战"},{"path":"/blog/zh/043-how-to-reduce-deepflow-storage-overhead/","title":"一图了解如何优化 DeepFlow 存储开销"},{"path":"/blog/zh/045-deepflow-metadata-database-transformation-in-practice-PostgreSQL/","title":"DeepFlow 元数据数据库 PostgreSQL 改造实践"},{"path":"/blog/zh/046-zero-code-observability-of-distributed-database-tdsql/","title":"DeepFlow 零侵扰实现分布式数据库 TDSQL 的全链路可观测性"},{"path":"/blog/zh/048-the-journey-of-observability-based-on-eBPF-in-CMBC/","title":"民生银行云原生业务的 eBPF 可观测性建设实践"},{"path":"/blog/zh/047-building-unified-observability-capabilities-for-apisix-using-deepflow/","title":"基于 DeepFlow 构建 APISIX 的统一可观测性能力"},{"path":"/blog/zh/049-say-goodbye-to-domain-ssl-certificate-expiry-worries/","title":"舒心！彻底告别域名 SSL 证书过期困扰"},{"path":"/blog/zh/050-ebpf-features-enabled-in-3-10-kernel-host/","title":"老乡，内核 3.10 的机器可以跑 eBPF 了！"},{"path":"/blog/zh/051-https-full-stack-distributed-tracing-via-ebpf/","title":"全栈！使用 eBPF 轻松解锁 HTTPS 分布式追踪能力"},{"path":"/blog/zh/052-build-in-sql-and-redis-data-obfuscation/","title":"安心！DeepFlow 内置 SQL/Redis 协议数据脱敏能力"},{"path":"/blog/zh/053-high-performance-decoding-of-http2-compressed-headers-using-ebpf-kprobe/","title":"硬核！使用 eBPF kprobe 高性能解码 HTTP2 压缩头"},{"path":"/blog/zh/054-cloud-native-database-audit-solution/","title":"开放！云原生的数据库审计解决方案"},{"path":"/blog/zh/056-out-of-the-Box-ready-to-use-application-observability-dashboard/","title":"开箱即用！随时就绪的应用可观测性 Dashboard"},{"path":"/blog/zh/057-the-current-status-and-future-of-zero-code-distributed-tracing-with-ebpf/","title":"eBPF 零侵扰分布式追踪的进展和探索"},{"path":"/blog/zh/058-out-of-the-box-the%20case%20of%20China-Mobile's-Panji-PaaS-platform/","title":"开箱即用的 eBPF 可观测性：中国移动磐基 PaaS 平台案例"},{"path":"/blog/zh/059-tencent-games-achieves-zero-code-observability%20-based-on-deepflow/","title":"腾讯游戏基于 DeepFlow 的零侵扰可观测性进阶实战"},{"path":"/blog/zh/061-ebpf-and-llm-the-infra-for-observability-ai-agents/","title":"eBPF + LLM：实现可观测性智能体的基础设施"},{"path":"/blog/zh/060-tidb-full-stack-observability-base-on-deepflow/","title":"基于 DeepFlow 的 TiDB 全栈全链路可观测性最佳实践"},{"path":"/blog/zh/062-observability-practices-for-tencent-cloud-services-based-on-deeflow/","title":"腾讯云某业务基于 DeepFlow 的可观测性实践"},{"path":"/blog/zh/065-autotracing-supports-brpc-enhance-grpc-dubbo-http/","title":"AutoTracing - 支持 bRPC 协议，增强 gRPC、Dubbo、HTTP 协议"},{"path":"/blog/zh/064-resolving-the-confusion-in-apisix-troubleshooting-with-deepflow/","title":"使用 DeepFlow 消除 APISIX 故障诊断中的“南辕北辙”"},{"path":"/blog/zh/063-building-unified-observability-for-kong-with-deepflow/","title":"基于 DeepFlow 构建 Kong 的统一可观测性能力"},{"path":"/blog/zh/066-autotracing-mq-plus-plus-pulsar-nats-activemq-rabbitmq-zeromq/","title":"AutoTracing - 消息队列++，Pulsar、NATS、ActiveMQ、RabbitMQ、ZeroMQ"},{"path":"/blog/zh/067-webassembly-plugin-supports-more-protocol-enhancements/","title":"AutoTracing - WebAssembly 插件支持增强更多协议"},{"path":"/blog/zh/068-autotracing-enhance-sql-command-collection/","title":"AutoTracing - 支持采集 SQL 预编译参数值、登录用户名等信息"},{"path":"/blog/zh/069-off-cpu-profiling-release/","title":"AutoProfiling - 新增 Off-CPU 持续剖析并支持 AI 智能体分析"},{"path":"/blog/zh/071-kafka-prometheus-opentelemetry-exporter/","title":"Exporter - 新增 Kafka，增强 Prometheus 和 OpenTelemetry"},{"path":"/blog/zh/070-improve-and-speedup-autotagging/","title":"AutoTagging - 更强大、更实时的标签自动注入能力"},{"path":"/blog/zh/072-reliability-agent-server-circuit-breaker-and-protection/","title":"Reliability - 增强熔断等防护机制，增加告警分析 Dashboard"},{"path":"/blog/zh/073-qimaitech-x-deepflow-observability-practices-behind-explosive-business-growth/","title":"企迈科技 x DeepFlow：爆发式增长业务背后的可观测性平台实践"},{"path":"/blog/zh/074-deepflow-observability-data-the-keystone-of-aiops/","title":"DeepFlow 零侵扰数据能力构建 AIOps 的基石"},{"path":"/blog/zh/075-finance-deepflow-achieving-99-9-sre-slo/","title":"某金融科技公司 x DeepFlow：如何实现 SRE 99.9% 服务级别目标 (SLO)"},{"path":"/blog/zh/077-the-blackbox-integration-and-observability/","title":"DeepFlow 最佳实践 —— Blackbox 拨测能力集成及统一观测"},{"path":"/blog/zh/078-the-nvidia-gpu-metrics-integration-and-observation/","title":"DeepFlow 最佳实践 —— NVIDIA GPU 指标数据集成及统一观测"},{"path":"/blog/zh/079-java-application-hang-troubleshooting-by-deepflow-stella/","title":"DeepFlow 大模型智能体 3 分钟定位 Java 程序 Hang 故障"},{"path":"/blog/zh/076-the-unix-metrics-integration-and-observability/","title":"DeepFlow 最佳实践 —— 主机指标数据集成及统一观测"},{"path":"/blog/zh/080-from-deployment-to-optimization-Futu-securities'-DeepFlow-exploration-journey/","title":"从部署到优化：富途证券的 DeepFlow 探索之旅"},{"path":"/blog/zh/081-locate-the-java-io-thread-in-3-min-by-deepflow-tracing/","title":"eBPF 零侵扰分布式追踪 3 分钟锁定 Java 程序 I/O 线程阻塞"},{"path":"/blog/zh/082-kingsoft-office-zero-code-observability-practice-based-on-deepflow/","title":"金山办公基于 DeepFlow 的零侵扰可观测性实践"},{"path":"/blog/zh/083-lock-db-in-3-min-during-trouble-shooting/","title":"故障诊断 3 分钟锁定分布式核心数据库，加速金融科技信创开发、测试、迁移"},{"path":"/blog/zh/084-ebpf-observability-lock-the-unknown-file-source/","title":"eBPF 可观测性技术 3 分钟锁定银行信创云垃圾文件罪魁祸首"},{"path":"/blog/zh/085-lock-tcp-timeout-setting-issue-in-3-minutes-by-deepflow/","title":"3 分钟诊断 Tomcat TCP 超时参数配置错误引发的概率性交易失败"},{"path":"/blog/zh/087-slow_call_troubleshooting_efficiently_locating_service_mesh_sidecar_performance_bottleneck/","title":"慢调用排查实录：高效定界服务网格 Sidecar 性能瓶颈"},{"path":"/blog/zh/086-deep-analysis-how-does-deepflow-collect-business-metrics-for-industry-big-models/","title":"深度解析 DeepFlow 如何采集大模型服务的业务指标"},{"path":"/blog/zh/088-deepflow-ai-agent/","title":"DeepFlow 智能体发布！开启业务连续性保障新时代"},{"path":"/blog/zh/090-deepflow_mcp_server_first_ebpf_mcp_server_release/","title":"首个 eBPF MCP Server！DeepFlow 推动应用性能管理全周期智能化"},{"path":"/blog/zh/089-deepflow_observability_practices_in_tencent_tke_internal_platform/","title":"DeepFlow 在腾讯 TKE 内部平台的可观测性实践"},{"path":"/blog/zh/091-DeepFlow_Highlights_AI-Powered_Observability_for_Financial_Systems_at_SIGCOMM/","title":"DeepFlow 携手保险巨头亮相 SIGCOMM，展示 AI 可观测性赋能金融系统"},{"path":"/blog/zh/092-improve-the-quality-of-oa-service/","title":"DeepFlow 全栈可观测平台赋能企业 OA 系统服务质量提升"},{"path":"/blog/zh/092-the-cost-of-missing-full-stack-observability-a-19-hour-outage-case-study/","title":"航旅纵横崩了19小时——业务全栈全链路可观测性缺失的代价"}];
+    function getHotList(Counter, dom) {
+      const isZh = window.location.href.includes('/zh/')
+      const entries = [...totalList].filter(a=>isZh?a.path.includes('/zh/'):!a.path.includes('/zh/')).map(element => {
+        return decodeURI(element.path);
+      });
+      var entriesId = Array.from(new Set(entries.map(url=>getUrlId(url))))
+      getResultPipeline(Counter,entriesId)
+        .then((results) => {
+          const yspostsByPath = ysposts.filter(a=>isZh?a.path.includes('/zh/'):!a.path.includes('/zh/')).reduce((res,item)=>{
+            res[getUrlId(item.path)] = item
+            return res
+          },{})
+          dom.innerHTML = results.sort((a, b) => b.time - a.time).slice(0, 3).map(item => {
+            const currentItem = yspostsByPath[item.url]
+            const tagHtml = currentItem.tags.map(tag=>`<span class="ys-tag" onclick="(function onclick(event){event.stopPropagation();event.preventDefault();jumpByTag(\'/blog/\',\'${tag}\', \'${item.url}\')})(event)" title="${tag}">${tag}</span>`).join('')
+            return `<a class="post-card top-post-item post " href="${currentItem.path}"<article class="top-post-item"><div class="top-post-cover"><img src="${currentItem.cover}" alt=""></div><div class="post-info"><span class="author">${currentItem.author}</span><span class="date">${currentItem.date}</span><span class="read">阅读：${item.time}</span></div><div class="post-description">${currentItem.excerpt}</div><div class="tags ys-post-tags">${tagHtml}</div></article></a>`
+          }).join('')
+          dom.classList.remove('skeleton')
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable_sync":true,"app_id":"2amdU33cmte77VIHNufwjvX9-gzGzoHsz","app_key":"mCncKLFsQPygeVJYlYEXaAkX","server_url":"https://leancloud.cn","username":"zzf","password":"zzf","security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id': app_id,
+            'X-LC-Key': app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (true) {
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-meta-item-text').length >= 1) {
+        showTime(Counter);
+        const dom = document.querySelector('#top-posts')
+        if (dom) {
+          getHotList(Counter, dom)
+        }
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+
+    const STARS_KEY = 'YS-DEEPFLOW-GITHUB-STARS'
+    const STARS_DEFAULT = 1521
+    /**
+     * 1. 使用缓存
+     * 2. 使用默认
+     * 3. 实时更新
+     */
+    async function getGithubInfo() {
+        const stars_counts = document.querySelectorAll(".github-stars");
+        const cacheStars = localStorage.getItem(STARS_KEY) || STARS_DEFAULT
+        stars_counts.forEach(el => {
+            el.innerHTML = cacheStars;
+            el.setAttribute("style", "display: flex");
+        })
+        const res = await fetch(
+            "https://api.github.com/repos/deepflowio/deepflow"
+        ).then(response => response.json());
+        if ('stargazers_count' in res) {
+            stars_counts.forEach(el => {
+                el.innerHTML = res.stargazers_count;
+            })
+            localStorage.setItem(STARS_KEY, res.stargazers_count)
+        }
+    }
+
+
+    function addEventListener(){
+      document.querySelectorAll('.lang-a').forEach(el=>el.addEventListener('click', function(event){
+        const target = event.target
+        const type = target.getAttribute('data-type')
+        const href = window.location.href
+        const isZhHref = href.includes('/zh/')
+        const isZhType = type === 'zh'
+        if(isZhHref === isZhType){
+          // 一致则不做操作
+          return 
+        }
+        // 单独处理事件
+        if([eBPFUrl, eBPFZHUrl].includes(location.pathname)){
+          window.location.href = location.pathname === eBPFUrl? eBPFZHUrl : eBPFUrl
+          return 
+        }
+        window.location.href = isZhHref? '/blog/' : '/blog/zh/'
+        // if(isZhHref){
+        //   window.location.href = href.split('/zh/').join('/')
+        //   return
+        // }
+        // window.location.href = href.split('/blog/').join('/blog/zh/')
+      })) 
+    }
+   
+    window.addEventListener('load', () => {
+        getGithubInfo();
+        addEventListener()
+
+        // 初始化Viewer
+        new Viewer(document.querySelector('article.content'), {
+          filter(image) {
+            return !Array.from(image.classList).includes('no-zoom')
+          },
+        })
+    })
+
+
+  })();
+</script>
+
+<!-- required -->
+
+      
+<script src="/blog/js/main.js" async></script>
+
+        
+
+          <!-- optional -->
+          
+
+
+            <!-- inject -->
+            
+                      <script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.deepflow.io","root":"/blog/","sidebar":{"logo":{"avatar":"[config.avatar](/about/)","title":"[config.title](/)"},"menu":[],"widget_layout":{"index":["welcome","recent"],"page":["welcome","toc"],"post":["toc","repo_info"],"wiki":["toc","repo_info","wiki_more"]},"widgets":{"recent":{"layout":"recent","limit":8},"toc":{"layout":"toc","list_number":false,"min_depth":1,"max_depth":6,"fallback":"recent"},"welcome":{"layout":"markdown"},"repo_info":{"layout":"repo_info"},"wiki_more":{"layout":"wiki_more"}}},"comments":{"service":null,"beaudar":{"repo":"xxx/xxx","issue-term":"pathname","issue-number":null,"theme":"preferred-color-scheme","label":null,"input-position":"top","comment-order":"desc","keep-theme":null,"loading":false,"branch":"main"},"utterances":{"repo":"xxx/xxx","issue-term":"pathname","issue-number":null,"theme":"preferred-color-scheme","label":null},"valine":{"js":"https://cdn.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":null,"appKey":null,"placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"]},"twikoo":{"js":"https://cdn.jsdelivr.net/npm/twikoo@1.4.0/dist/twikoo.all.min.js","envId":"https://xxx"}},"localsearch":{"enable":true},"path":"search.xml"};
+  </script>
+                        
+<script src="/blog/js/plugins/local-search.js" async></script>
+
+                        
+<link rel="stylesheet" href="/blog/lib/css/viewer.min.css">
+
+                        
+<script src="/blog/js/plugins/viewer.min.js" async></script>
+
+
+                            <script type="text/javascript">
+                              document.querySelector('#year').innerHTML = new Date().getFullYear()
+                            </script></div>
+  </body>
+  
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MWF4JM5L"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+</html>

@@ -1,0 +1,54 @@
+term	chinese_counterpart_or_observed_usage	region_or_context	notes	references	date	version
+eBPF	eBPF	All reviewed Chinese technical contexts	Universally retained; optionally define once as 扩展伯克利包过滤器, but do not translate the running term.	GH-DEEPFLOW;GH-EUNOMIA-INTRO;GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+BPF	BPF	Linux/eBPF	Retained as the historical subsystem/acronym; a full Chinese expansion is uncommon.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+XDP	XDP	Linux high-performance networking	Retained; optionally define once as eXpress Data Path（快速数据路径）.	GH-EUNOMIA-XDP;PDF-COOLBPF	2026-09-04	v1.1.0
+TC	TC	Linux traffic control	Retained in command/program-type contexts; explain once as 流量控制.	GH-EUNOMIA-TC;GE-KMESH	2026-09-04	v1.1.0
+kprobe	kprobe	Kernel tracing	Lowercase technical identifier is retained; surrounding prose uses 探针, 探测点, or 挂载点.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+kretprobe	kretprobe	Kernel tracing	Retained; explain as kernel-function return probe when needed.	PDF-COOLBPF	2026-09-04	v1.1.0
+uprobe	uprobe	Userspace tracing	Retained; distinguish from kprobe by explaining 用户态探针.	GH-EUNOMIA-INDEX;PDF-COOLBPF	2026-09-04	v1.1.0
+uretprobe	uretprobe	Userspace tracing	Retained; user-function return probe.	GH-EUNOMIA-INDEX;PDF-COOLBPF	2026-09-04	v1.1.0
+tracepoint	tracepoint	Kernel tracing	Usually retained; 追踪点/跟踪点 may be added as an explanatory gloss.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+USDT	USDT	Userspace static tracing	Retained acronym; define once as 用户态静态定义追踪 if the audience needs it.	PDF-COOLBPF	2026-09-04	v1.1.0
+BTF	BTF	eBPF type metadata	Retained; define once as BPF Type Format（BPF 类型格式）.	GH-EUNOMIA-INTRO;GE-GALA-TECH	2026-09-04	v1.1.0
+CO-RE	CO-RE	eBPF portability	Retained; first use may add Compile Once – Run Everywhere（一次编译、到处运行）.	GH-EUNOMIA-INTRO;GE-GALA-TECH	2026-09-04	v1.1.0
+libbpf	libbpf	eBPF development	Library name; never translate.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+bpftool	bpftool	eBPF tooling	Command/tool name; never translate.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+bpftrace	bpftrace	eBPF tracing language/tool	Project and command name; never translate. Capitalization varies in source prose (bpfTrace), but canonical name is bpftrace.	PDF-COOLBPF	2026-09-04	v1.1.0
+BCC	BCC	eBPF tooling	Retained acronym/project name; optionally expand once as BPF Compiler Collection.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+perf	perf	Linux performance tool	Command/tool name; retained lowercase.	GE-GALA-README;GH-EUNOMIA-PROFILE;PDF-COOLBPF	2026-09-04	v1.1.0
+map	map / eBPF map	eBPF data structure	Commonly retained in code and expert prose; explanatory Chinese is 映射 or 映射表, but avoid translating identifiers.	GH-EUNOMIA-INTRO;PDF-COOLBPF;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+ring buffer	ring buffer / Ring Buffer	eBPF event transport	Often retained; first-use gloss 环形缓冲区 is helpful.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+hook	hook	Kernel/networking expert prose	Frequently retained as a mechanism name; translate as 钩子 or 挂载点 only when the syntactic role is clear.	GE-KMESH;PDF-COOLBPF	2026-09-04	v1.1.0
+Metrics	Metrics	Component names, APIs, headings	Chinese product prose often uses 指标, but code-facing names and gala/SkyWalking API categories retain Metrics.	GE-GALA-README;WEB-SW-GO;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+Metric	Metric / metric	API/type names and bilingual technical prose	Retained for named data types or packages; use 指标 in ordinary prose.	WEB-SW-GO;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+Histogram	Histogram	Metric instrument/type name	Retained in API/type lists; introduce as Histogram（直方图）. One SkyWalking article renders it 柱状图, showing why retaining the type name prevents ambiguity.	WEB-SW-GO;WEB-OTEL-METRICS (T);WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Counter	Counter	Metric instrument/API name	Retained for type/class/API names; translate as 计数器 in explanatory prose.	WEB-SW-GO;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Gauge	Gauge	Metric instrument/API name	Frequently retained because 仪表 can be confused with a dashboard visualization.	WEB-SW-GO;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Trace	Trace	Data-model/UI/API name	Retained when naming an object, signal, or UI view; use 追踪/调用链 in explanatory prose.	WEB-DEEPFLOW;GH-DEEPFLOW	2026-09-04	v1.1.0
+Span	Span	Distributed-tracing data model	Commonly retained in Chinese expert and product prose; add a short definition instead of forcing 跨度.	WEB-DEEPFLOW;GH-DEEPFLOW	2026-09-04	v1.1.0
+Profiling	Profiling	Feature labels and expert prose	Frequently retained or mixed as 性能 Profiling; formal prose should prefer 性能剖析.	GE-GALA-README;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+OnCPU	OnCPU / on-cpu-profile	Profiling dimension/configuration	Retained as a named profiling mode; explain as CPU 上运行时间 when needed.	GE-GALA-README;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+OffCPU	OffCPU / off-cpu-profile	Profiling dimension/configuration	Retained as a named profiling mode; explain as 离 CPU 等待时间 when needed.	GE-GALA-README;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+Agent	Agent	Collector/probe/product component	Very commonly retained in component names; context-dependent Chinese glosses include 代理, 采集器, 探针.	GH-N9E-README;GE-GALA-README;WEB-SW-GO	2026-09-04	v1.1.0
+SDK	SDK	Developer tooling	Retained acronym; optionally define once as 软件开发工具包.	WEB-DEEPFLOW;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+API	API	All technical contexts	Retained acronym; Chinese expansion 应用程序编程接口 is mainly for formal definitions.	GH-N9E-README;GE-GALA-README;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+APM	APM	Application observability	Retained acronym; define once as 应用性能监控/管理 depending on organizational usage.	GH-DEEPFLOW;WEB-DEEPFLOW;WEB-N9E	2026-09-04	v1.1.0
+SRE	SRE	Operations discipline/team role	Retained acronym; formal expansion is 站点可靠性工程.	WEB-DEEPFLOW;GH-N9E-README	2026-09-04	v1.1.0
+DevOps	DevOps	Engineering practice/team context	Retained; no broadly accepted full Chinese substitute.	WEB-DEEPFLOW;GH-DEEPFLOW	2026-09-04	v1.1.0
+Kubernetes	Kubernetes / K8s	Cloud-native platform	Project name is retained; K8s is normal shorthand in Chinese prose.	GH-DEEPFLOW;GE-GALA-README;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Pod	Pod	Kubernetes object	Retained with capital P in prose; do not translate as 舱.	WEB-DEEPFLOW;PDF-DEEPFLOW-TKE;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Sidecar	Sidecar	Service-mesh deployment pattern	Often retained; first-use gloss 边车 is optional.	WEB-DEEPFLOW;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+Prometheus	Prometheus	Metrics ecosystem	Project/product name; never translate.	GH-N9E-README;GE-GALA-README;WEB-DEEPFLOW	2026-09-04	v1.1.0
+Grafana	Grafana	Visualization ecosystem	Project/product name; never translate.	GH-N9E-README;WEB-N9E;WEB-DEEPFLOW	2026-09-04	v1.1.0
+OpenTelemetry	OpenTelemetry / OTel	Telemetry standard/ecosystem	Project name and acronym are retained; spelling OpenTelemtry in one source is a typo, not a variant.	WEB-DEEPFLOW;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+Dashboard	Dashboard	UI feature/name	Often retained in titles and product names; use 仪表盘 in ordinary Chinese UI copy.	WEB-DEEPFLOW;GH-N9E-README	2026-09-04	v1.1.0
+Exporter	Exporter	Prometheus/OpenTelemetry component or plugin name	Retained in identifiers and component names; 导出器 works in explanatory prose.	GH-CATEGRAF;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+Collector	Collector	OpenTelemetry/component name	Retained when part of a proper component name such as OpenTelemetry Collector; otherwise 采集器.	WEB-DEEPFLOW;WEB-N9E	2026-09-04	v1.1.0
+Label	Label	Prometheus schema/query context	Often retained when distinguishing the exact Prometheus model from generic 标签.	GH-N9E-README;WEB-DEEPFLOW	2026-09-04	v1.1.0
+Tag	Tag	Product data model/field name	Often retained when it is a schema concept or branded feature such as AutoTagging; otherwise 标签.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+JIT	JIT	Compiler/runtime	Retained acronym after first-use definition 即时编译.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+JVM	JVM	Java/runtime monitoring	Retained acronym; rarely expanded in expert Chinese material.	GE-GALA-README;GE-GALA-TECH	2026-09-04	v1.1.0
+RTT	RTT	Network metrics	Retained acronym; define once as 往返时间.	GE-GALA-README;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+CPU	CPU	System metrics	Retained acronym; no translation needed.	GH-CATEGRAF-CPU;GE-GALA-README	2026-09-04	v1.1.0
+I/O	I/O	System/storage performance	Retained notation; Chinese prose commonly forms compounds such as I/O 性能 and I/O 时延.	GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+L7	L7	Network/application-layer observability	Retained layer shorthand; optionally explain as 七层/应用层 on first use.	GE-GALA-README;WEB-SW-HTTP (T)	2026-09-04	v1.1.0

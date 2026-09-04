@@ -1,0 +1,100 @@
+term	chinese_counterpart	region_or_context	notes	references	date	version
+metrics	指标	Mainland China; observability operations	Dominant translation when referring to measured time-series data or monitoring signals. Singular metric is also 指标.	GH-N9E-README;GH-DEEPFLOW;GE-GALA-TECH;PDF-DEEPFLOW-TKE;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+metrics	度量	Mainland China; specifications/conceptual prose	More literal translation used for the measurement concept or section heading; less common than 指标 in product UI and operations prose.	WEB-SW-MESH (T);WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+metric	测量值	OpenTelemetry data-model context	Refers to an individual measured value rather than the metric stream/instrument; avoid treating it as a universal replacement for 指标.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+histogram	直方图	Metrics/statistics; preferred general term	Standard statistical translation and the clearer choice for metric distribution instruments.	WEB-OTEL-METRICS (T);WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+histogram	柱状图	SkyWalking eBPF UI/document context	Observed contextual variant. Literally closer to bar chart; can be ambiguous in visualization prose, so retain Histogram in parentheses on first use.	WEB-SW-MESH (T)	2026-09-04	v1.1.0
+kernel bypassing	内核旁路	Networking/system architecture	Concise technical noun phrase, common in vendor and networking language.	GE-KMESH	2026-09-04	v1.1.0
+kernel bypassing	绕过内核	Explanatory prose	Verb-object phrasing; most natural when describing how a data path operates.	GE-KMESH;GH-EUNOMIA-XDP	2026-09-04	v1.1.0
+kernel bypassing	内核绕过	Architecture label	Understandable nominal variant, but less idiomatic than 内核旁路 in many Mainland networking texts.	GE-KMESH	2026-09-04	v1.1.0
+observability	可观测性	Mainland China; standard industry usage	Overwhelmingly preferred technical term in the reviewed corpus.	GH-DEEPFLOW;GE-GALA-README;WEB-DEEPFLOW;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+observability	可观察性	General-language or older translation	Occasional literal variant; avoid in a modern observability product glossary unless quoting a source.	WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+monitoring	监控	Operations/product context	Standard translation for ongoing system observation; narrower than 可观测性.	GH-N9E-README;GE-GALA-README;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+telemetry	遥测	Standards and data-pipeline context	Covers machine-generated metrics, logs, and traces and their transport.	GH-CATEGRAF;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+signal	信号	OpenTelemetry/observability signal context	Usually appears as 观测信号 or 遥测信号 when referring to metrics, logs, and traces.	WEB-DEEPFLOW;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+tracing	追踪	Distributed tracing; DeepFlow/SkyWalking usage	Preferred in the reviewed current product material: 分布式追踪, 自动追踪.	GH-DEEPFLOW;WEB-DEEPFLOW;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+tracing	跟踪	Kernel/I/O diagnostics and some translated documentation	Common in eBPF and kernel prose, especially 跟踪信息 and 路径跟踪.	PDF-COOLBPF;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+distributed tracing	分布式追踪	Observability/APM	Preferred current rendering in DeepFlow and much Chinese cloud-native prose.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+distributed tracing	分布式链路追踪	Request-path emphasis	Explicitly signals request-chain semantics; common in educational and architecture prose.	WEB-N9E;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+trace	调用链	APM/user-facing noun	Refers to the end-to-end request chain as an object or visualization, not the tracing activity.	WEB-DEEPFLOW;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+trace	追踪数据	Telemetry data context	Use when referring to emitted/stored trace records collectively.	WEB-DEEPFLOW;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+span	跨度	Literal standards translation	Rare in the reviewed China product corpus; can sound unnatural. Prefer Span retained in API/data-model prose.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+span	调用片段	Explanatory APM prose	Useful explanatory gloss for one timed operation within a trace; introduce as Span（调用片段） rather than silently replacing the model name.	WEB-DEEPFLOW	2026-09-04	v1.1.0
+log	日志	All contexts	Standard translation; Log may remain English in API names.	GH-N9E-README;GE-GALA-README;WEB-SW-GO	2026-09-04	v1.1.0
+alert	告警	Operations/monitoring	Dominant Mainland operations term for alert noun and verb concepts.	GH-N9E-README;WEB-N9E;PDF-COOLBPF	2026-09-04	v1.1.0
+alarm	告警	Operations/monitoring	English alarm and alert often collapse to the same Chinese term; disambiguate only when the product model distinguishes them.	GH-N9E-README;WEB-N9E	2026-09-04	v1.1.0
+alert rule	告警规则	Monitoring configuration	Standard product/configuration term.	GH-N9E-README;WEB-N9E	2026-09-04	v1.1.0
+alert threshold	告警阈值	Monitoring configuration	阈值 is preferred in formal prose; 门限 also appears in systems diagnostics.	GH-N9E-README;GE-SYSAK	2026-09-04	v1.1.0
+threshold	阈值	General monitoring/statistics	Most broadly understood modern translation.	GH-N9E-README;WEB-N9E	2026-09-04	v1.1.0
+threshold	门限	Kernel/network diagnostics	Established engineering variant, especially telecommunications and low-level diagnostics.	GE-SYSAK	2026-09-04	v1.1.0
+dashboard	仪表盘	Product UI	Dominant UI translation.	GH-N9E-README;WEB-N9E;WEB-SW-GO	2026-09-04	v1.1.0
+visualization	可视化	Product/data analysis	Standard translation.	GH-N9E-README;WEB-N9E	2026-09-04	v1.1.0
+time series	时间序列	Database/data-model context	Formal full form.	GH-N9E-README;GE-GALA-TECH	2026-09-04	v1.1.0
+time-series database	时序数据库	Observability storage	Standard shortened compound; TSDB commonly remains untranslated in expert prose.	WEB-N9E;GH-N9E-README	2026-09-04	v1.1.0
+data source	数据源	Integration/product context	Standard translation.	GH-N9E-README;WEB-N9E	2026-09-04	v1.1.0
+data collection	数据采集	Telemetry pipeline	Standard translation.	GH-CATEGRAF;GE-GALA-README;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+collector	采集器	Telemetry component	Preferred for a standalone collection component or agent role.	GH-CATEGRAF;WEB-N9E	2026-09-04	v1.1.0
+probe	探针	Instrumentation/eBPF/APM	Standard translation for deployed observation code/component; Probe remains in identifiers.	GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+instrumentation	插桩	APM/compiler/runtime	Standard technical translation for adding observation hooks/code.	WEB-DEEPFLOW;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+instrumentation	埋点	Application analytics/manual event collection	Common when application developers add explicit reporting points; implies manual code changes more strongly than 插桩.	WEB-DEEPFLOW	2026-09-04	v1.1.0
+zero instrumentation	零插桩	Literal technical claim	Direct opposite of 插桩; precise when no instrumentation code is inserted.	WEB-DEEPFLOW	2026-09-04	v1.1.0
+zero-code instrumentation	零侵扰采集	Product/solution marketing	Emphasizes no application modification and low intrusion; broader than literal 零插桩.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+non-intrusive	非侵入	openEuler/gala terminology	Common technical adjective in 非侵入可观测; neutral and literal.	GE-GALA-README	2026-09-04	v1.1.0
+non-intrusive	零侵扰	DeepFlow product terminology	Stronger product phrasing; may imply no code changes rather than literally zero runtime overhead.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+profiling	性能剖析	Observability/performance	Preferred formal translation, especially 持续性能剖析.	GH-DEEPFLOW;WEB-DEEPFLOW;GH-EUNOMIA-PROFILE	2026-09-04	v1.1.0
+profiling	性能分析	General explanatory prose	Broader term that can include non-profiler analysis; use 性能剖析 for the specific observability signal.	PDF-COOLBPF;GH-EUNOMIA-PROFILE	2026-09-04	v1.1.0
+continuous profiling	持续性能剖析	Observability signal/product capability	Preferred explicit rendering.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+flame graph	火焰图	Performance diagnostics	Established translation.	GE-GALA-README;GH-EUNOMIA-PROFILE	2026-09-04	v1.1.0
+sampling	采样	Profiling/telemetry	Standard translation.	GE-SYSAK;GH-EUNOMIA-PROFILE;PDF-COOLBPF	2026-09-04	v1.1.0
+aggregation	聚合	Metrics/data processing	Standard translation.	GH-N9E-README;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+temporality	时间性	OpenTelemetry metrics data model	Specification term; in practical docs clarify delta/cumulative semantics because the Chinese noun alone is abstract.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+cumulative	累积	Metrics temporality	Use for values aggregated since a fixed start time.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+delta	增量	Metrics temporality	Use for change during the reporting interval; Delta often remains in schema/API names.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+counter	计数器	Metrics instrument/data type	Standard translation.	WEB-SW-GO;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+gauge	仪表	Metrics instrument	Literal standards translation; many Chinese engineering docs retain Gauge to avoid confusion with dashboard gauges.	WEB-SW-GO;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+bucket	桶	Histogram/data distribution	Established technical translation, as in 桶边界 and 分桶.	WEB-SW-MESH (T);WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+cardinality	基数	Metrics/labels/database	Standard database/set-theory term; commonly discussed as 高基数.	GE-GALA-TECH;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+label	标签	Prometheus/metrics	Standard translation; distinguish from field/字段 when the data model does.	GH-N9E-README;WEB-DEEPFLOW	2026-09-04	v1.1.0
+tag	标签	Observability enrichment	Usually also 标签; some products distinguish Tag from Prometheus Label, so preserve the English model name where needed.	GH-DEEPFLOW;WEB-DEEPFLOW	2026-09-04	v1.1.0
+attribute	属性	OpenTelemetry/resource context	Preferred standards translation.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+metadata	元数据	All data contexts	Standard translation.	GH-N9E-README;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+exemplar	范例	OpenTelemetry/Prometheus metrics	Literal translation seen in standards; expert Chinese material often retains Exemplar because it is a named data-model concept.	WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+exporter	导出器	Telemetry pipeline	Standard OpenTelemetry/Prometheus translation; English remains common in component names.	GH-CATEGRAF;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+receiver	接收器	Telemetry pipeline	Standard component-role translation.	GH-DEEPFLOW;WEB-N9E	2026-09-04	v1.1.0
+service topology	服务拓扑	Observability/APM	Standard rendering; 拓扑图 when specifically naming the visualization.	WEB-DEEPFLOW;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+root cause analysis	根因分析	Diagnostics/AIOps	Standard translation; 故障根因定位 emphasizes operational outcome.	GE-GALA-README;GH-DEEPFLOW	2026-09-04	v1.1.0
+troubleshooting	故障排查	Operations	Natural operations translation.	PDF-COOLBPF;GE-SYSAK	2026-09-04	v1.1.0
+diagnosis	诊断	Operations/performance	Standard translation.	GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+latency	时延	Networking/systems	Preferred in Mainland networking and systems documentation.	GE-GALA-README;PDF-COOLBPF;PDF-DEEPFLOW-TKE	2026-09-04	v1.1.0
+latency	延迟	Application/UI/general computing	Common and natural general variant; may also describe scheduling delay.	GE-SYSAK;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+throughput	吞吐量	Performance/networking	Standard translation.	GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+packet loss	丢包	Networking	Standard concise translation.	GE-GALA-README;PDF-COOLBPF	2026-09-04	v1.1.0
+retransmission	重传	Networking/TCP	Standard translation.	GE-GALA-README;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+request rate	请求速率	Metrics/SRE	Preferred precise phrase; 请求率 also appears.	GE-GALA-TECH;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+error rate	错误率	Metrics/SRE	Standard translation.	GE-GALA-README;WEB-SW-HTTP (T)	2026-09-04	v1.1.0
+availability	可用性	SRE/operations	Standard translation.	GH-N9E-README;WEB-OTEL-METRICS (T)	2026-09-04	v1.1.0
+service-level objective	服务等级目标	SRE	Standard expansion for SLO; 服务级别目标 is an accepted variant.	WEB-N9E	2026-09-04	v1.1.0
+mean time to repair	平均故障修复时间	SRE/operations	Common expansion of MTTR when R means repair.	WEB-N9E	2026-09-04	v1.1.0
+mean time to recovery	平均恢复时间	SRE/operations	Alternative MTTR expansion; name the English expansion because both map to MTTR.	GH-N9E-README	2026-09-04	v1.1.0
+kernel space	内核态	Linux/eBPF	Preferred when contrasting execution context with 用户态.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+kernel space	内核空间	Linux memory/address-space context	Use when spatial/address-space meaning is intended.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+user space	用户态	Linux/eBPF execution context	Preferred counterpart to 内核态.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+user space	用户空间	Linux address-space/component context	Preferred when emphasizing memory space or userspace components.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+hook	挂载点	Linux/eBPF attachment location	Used when hook means the point to which an eBPF program attaches.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+hook	钩子	General programming/kernel mechanism	Literal established translation; often retained as hook in expert prose.	GE-KMESH;PDF-COOLBPF	2026-09-04	v1.1.0
+verifier	验证器	eBPF safety/component	Standard translation for the kernel eBPF verifier.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+helper function	辅助函数	eBPF API	Standard translation for BPF helper functions.	PDF-COOLBPF;GH-EUNOMIA-INTRO	2026-09-04	v1.1.0
+bytecode	字节码	Compiler/eBPF	Standard translation.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+just-in-time compilation	即时编译	Compiler/eBPF	Standard expansion; JIT is normally retained after first definition.	GH-EUNOMIA-INTRO;PDF-COOLBPF	2026-09-04	v1.1.0
+traffic control	流量控制	Linux networking	General expansion of TC; 流量整形 is narrower and should be used only for shaping.	GH-EUNOMIA-TC;GE-KMESH	2026-09-04	v1.1.0
+packet	数据包	General networking	Broad standard term.	GH-EUNOMIA-XDP;PDF-COOLBPF	2026-09-04	v1.1.0
+packet	报文	Protocol/kernel networking	More formal low-level networking term in Mainland engineering prose.	GE-KMESH;PDF-COOLBPF	2026-09-04	v1.1.0
+fast path	快速路径	Networking/data plane	Literal explanatory translation.	GH-EUNOMIA-XDP;GE-KMESH	2026-09-04	v1.1.0
+fast path	快路径	Kernel/network architecture shorthand	Concise established systems variant.	GE-KMESH	2026-09-04	v1.1.0
+data plane	数据平面	Networking/cloud native	Standard translation.	GE-KMESH;GH-EUNOMIA-XDP	2026-09-04	v1.1.0
+control plane	控制平面	Networking/cloud native	Standard translation.	GE-KMESH;GH-EUNOMIA-TC	2026-09-04	v1.1.0
+service mesh	服务网格	Cloud native	Standard translation.	GE-KMESH;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+sidecar	边车	Service-mesh architecture	Accepted translation, but English Sidecar is often retained in Chinese technical prose.	WEB-DEEPFLOW;WEB-SW-MESH (T)	2026-09-04	v1.1.0
+sampling rate	采样率	Profiling/telemetry	Standard translation.	GH-EUNOMIA-PROFILE;GE-GALA-TECH	2026-09-04	v1.1.0
+stack trace	堆栈跟踪	Debugging/profiling	Common Mainland translation; 栈回溯 emphasizes the act of unwinding.	GH-EUNOMIA-PROFILE;PDF-COOLBPF	2026-09-04	v1.1.0
+stack trace	调用栈	Profiling visualization/data	Natural when referring to the captured stack structure itself.	GH-EUNOMIA-PROFILE;GE-GALA-README	2026-09-04	v1.1.0

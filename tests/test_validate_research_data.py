@@ -36,3 +36,7 @@ class Tests(unittest.TestCase):
   root=Path(__file__).resolve().parents[1];errors=validate_repository(root);self.assertFalse([e for e in errors if "source_manifest.tsv" in e and "header" in e],errors)
  def test_repository_research_ledgers_are_consistent(self):
   self.assertEqual([],validate_repository(Path(__file__).resolve().parents[1]))
+
+ def test_research_readme_has_required_sections(self):
+  text=(Path(__file__).resolve().parents[1]/"research/README.md").read_text()
+  for heading in ("## Running a refresh","## Source precedence","## Translation-quality gate","## Quality scoring","## Saturation and the 1,000-source cap","## WeChat handling","## Publishing a release","## Validation"): self.assertIn(heading,text)

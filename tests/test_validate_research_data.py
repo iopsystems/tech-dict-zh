@@ -7,6 +7,8 @@ MH="source_id logical_source_id project_or_publisher source_type host language c
 RH="run_id status started_at completed_at dataset_version_before dataset_version_after search_scope accounts_or_projects search_queries platforms candidate_count accepted_count updated_count rejected_count removed_count new_terms new_variants saturation_window saturation_new_terms saturation_new_variants review_method tool_version operator notes".split()
 CH="candidate_id first_seen_run discovered_at title publisher_or_account canonical_url retrieval_url platform suspected_origin candidate_status notes".split()
 DH="run_id source_or_candidate_id decision reason_code reason_detail previous_status new_status reviewer date".split()
+def read_rows(p):
+ with p.open() as f:return list(csv.DictReader(f,delimiter="\t"))
 def tsv(p,h,rs):
  p.parent.mkdir(parents=True,exist_ok=True)
  with p.open("w",encoding="utf-8",newline="") as f:w=csv.DictWriter(f,fieldnames=h,delimiter="\t");w.writeheader();w.writerows(rs)
@@ -16,7 +18,7 @@ class Tests(unittest.TestCase):
   for s in ("O","T"):(self.r/"sources"/f"{s}.md").write_text("trusted",encoding="utf-8")
   self.m=[self.src("O","original_chinese"),self.src("T","human_translated")];tsv(self.r/"source_manifest.tsv",MH,self.m)
   tsv(self.r/"translated_terms_zh.tsv",["term","reference"],[{"term":"metrics","reference":"O;T (T)"}]);tsv(self.r/"untranslated_terms_zh.tsv",["term","reference"],[{"term":"eBPF","reference":"O"}])
-  tsv(self.r/"research/research_runs.tsv",RH,[dict.fromkeys(RH,"")|{"run_id":"R","status":"complete","candidate_count":"1"}]);tsv(self.r/"research/candidate_sources.tsv",CH,[dict.fromkeys(CH,"")|{"candidate_id":"C","first_seen_run":"R","candidate_status":"accepted"}]);tsv(self.r/"research/source_decisions.tsv",DH,[dict.fromkeys(DH,"")|{"run_id":"R","source_or_candidate_id":"C","decision":"accept"}])
+  tsv(self.r/"research/research_runs.tsv",RH,[dict.fromkeys(RH,"")|{"run_id":"R","status":"complete","candidate_count":"1","accepted_count":"0","updated_count":"0","rejected_count":"0","removed_count":"0"}]);tsv(self.r/"research/candidate_sources.tsv",CH,[dict.fromkeys(CH,"")|{"candidate_id":"C","first_seen_run":"R","candidate_status":"accepted"}]);tsv(self.r/"research/source_decisions.tsv",DH,[dict.fromkeys(DH,"")|{"run_id":"R","source_or_candidate_id":"C","decision":"accept"}])
  def tearDown(self):self.t.cleanup()
  def src(self,s,o):
   p=f"sources/{s}.md";tr=o=="human_translated"
@@ -40,3 +42,17 @@ class Tests(unittest.TestCase):
  def test_research_readme_has_required_sections(self):
   text=(Path(__file__).resolve().parents[1]/"research/README.md").read_text()
   for heading in ("## Running a refresh","## Source precedence","## Translation-quality gate","## Quality scoring","## Saturation and the 1,000-source cap","## WeChat handling","## Publishing a release","## Validation"): self.assertIn(heading,text)
+
+ def test_running_run_allows_blank_counts(self):
+  p=self.r/"research/research_runs.tsv";rows=read_rows(p);rows[0].update(status="running",candidate_count="");tsv(p,RH,rows);self.assertEqual([],validate_repository(self.r))
+ def test_accepted_source_requires_logical_id(self):
+  self.m[0]["logical_source_id"]="";tsv(self.r/"source_manifest.tsv",MH,self.m);self.err("logical_source_id")
+ def test_excluded_origin_cannot_be_accepted_when_unreferenced(self):
+  self.m[1]["content_origin"]="machine_translated";tsv(self.r/"source_manifest.tsv",MH,self.m);tsv(self.r/"translated_terms_zh.tsv",["term","reference"],[{"term":"x","reference":"O"}]);self.err("cannot be accepted")
+ def test_completed_run_reconciles_accepted_count(self):
+  p=self.r/"research/research_runs.tsv";rows=read_rows(p);rows[0]["accepted_count"]="1";tsv(p,RH,rows);self.err("accepted_count")
+ def test_snapshot_must_stay_under_sources(self):
+  outside=self.r/"outside.md";outside.write_text("trusted");self.m[0]["local_path"]="outside.md";self.m[0]["content_hash"]=hashlib.sha256(outside.read_bytes()).hexdigest();tsv(self.r/"source_manifest.tsv",MH,self.m);self.err("sources directory")
+
+ def test_completed_run_requires_final_counts(self):
+  p=self.r/"research/research_runs.tsv";rows=read_rows(p);rows[0]["removed_count"]="";tsv(p,RH,rows);self.err("removed_count")

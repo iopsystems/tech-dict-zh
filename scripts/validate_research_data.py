@@ -55,8 +55,11 @@ def validate_repository(root):
     for i,row in enumerate(manifest,2):
         tag=f"source_manifest.tsv:{i} {row.get('source_id','')}"
         origin=row.get("content_origin")
+        if not row.get("source_id"): errors.append(f"{tag}: source_id is required")
+        if not row.get("logical_source_id"): errors.append(f"{tag}: logical_source_id is required")
         if origin not in ORIGINS: errors.append(f"{tag}: invalid content_origin {origin!r}")
         if row.get("quality_status") not in QUALITY_STATUSES: errors.append(f"{tag}: invalid quality_status")
+        if origin not in ELIGIBLE and row.get("quality_status")=="accepted": errors.append(f"{tag}: excluded content_origin cannot be accepted")
         if row.get("access_status") not in ACCESS_STATUSES: errors.append(f"{tag}: invalid access_status")
         score=_integer(row.get("quality_score"),f"{tag} quality_score",errors)
         if score is not None and score not in range(0,101): errors.append(f"{tag}: quality_score must be 0..100")
@@ -66,7 +69,10 @@ def validate_repository(root):
         translated=origin=="human_translated"
         if translated and not all(row.get(x) for x in ("translation_method","translator","original_url")): errors.append(f"{tag}: human translation requires method, translator, and original_url")
         if not translated and row.get("translation_method") not in ("","not_applicable"): errors.append(f"{tag}: translation_method conflicts with content_origin")
-        rel=row.get("local_path",""); path=root/rel
+        rel=row.get("local_path",""); path=root/rel; sources_root=(root/"sources").resolve()
+        try: contained=path.resolve().is_relative_to(sources_root)
+        except (OSError,RuntimeError): contained=False
+        if not contained or any(part.is_symlink() for part in [path,*path.parents] if part != root): errors.append(f"{tag}: local_path must remain inside sources directory without symlinks"); continue
         if not rel or not path.is_file(): errors.append(f"{tag}: missing local_path {rel!r}"); continue
         digest=hashlib.sha256(path.read_bytes()).hexdigest()
         if row.get("content_hash") != digest: errors.append(f"{tag}: content_hash mismatch")
@@ -106,10 +112,16 @@ def validate_repository(root):
     for i,row in enumerate(decisions,2):
         if row.get("run_id") not in run_by_id: errors.append(f"source_decisions.tsv:{i}: unknown run_id")
         if row.get("source_or_candidate_id") not in source_or_candidate: errors.append(f"source_decisions.tsv:{i}: unknown source_or_candidate_id")
-    actual=Counter(c.get("first_seen_run") for c in candidates)
+    discovered=Counter(c.get("first_seen_run") for c in candidates)
+    accepted=Counter(d.get("run_id") for d in decisions if d.get("new_status")=="accepted")
+    rejected=Counter(d.get("run_id") for d in decisions if d.get("new_status")=="rejected")
+    removed=Counter(d.get("run_id") for d in decisions if d.get("decision") in {"remove","removed","removal"} or d.get("new_status")=="removed")
+    updated=Counter(d.get("run_id") for d in decisions if d.get("decision") in {"metadata_correction","supersession","restoration","update","updated"})
     for rid,row in run_by_id.items():
-        expected=_integer(row.get("candidate_count"),f"research_runs.tsv {rid} candidate_count",errors)
-        if expected is not None and expected != actual[rid]: errors.append(f"research_runs.tsv {rid}: candidate_count {expected} != {actual[rid]} ledger rows")
+        if row.get("status")!="complete": continue
+        for field,actual in (("candidate_count",discovered[rid]),("accepted_count",accepted[rid]),("updated_count",updated[rid]),("rejected_count",rejected[rid]),("removed_count",removed[rid])):
+            expected=_integer(row.get(field),f"research_runs.tsv {rid} {field}",errors)
+            if expected is not None and expected != actual: errors.append(f"research_runs.tsv {rid}: {field} {expected} != {actual} ledger rows")
     return errors
 
 def main(argv=None):

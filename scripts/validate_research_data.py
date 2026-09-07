@@ -59,7 +59,8 @@ def validate_repository(root):
         if row.get("quality_status") not in QUALITY_STATUSES: errors.append(f"{tag}: invalid quality_status")
         if row.get("access_status") not in ACCESS_STATUSES: errors.append(f"{tag}: invalid access_status")
         score=_integer(row.get("quality_score"),f"{tag} quality_score",errors)
-        if score is not None and score not in range(1,6): errors.append(f"{tag}: quality_score must be 1..5")
+        if score is not None and score not in range(0,101): errors.append(f"{tag}: quality_score must be 0..100")
+        if row.get("quality_status")=="accepted" and score is not None and score < 60: errors.append(f"{tag}: accepted source quality_score must be at least 60")
         for field in ("first_seen_run","last_checked_run"):
             if row.get(field) not in run_ids: errors.append(f"{tag}: unknown {field} {row.get(field)!r}")
         translated=origin=="human_translated"
@@ -72,15 +73,16 @@ def validate_repository(root):
         if path.suffix.lower() in {".md",".txt",".html",".htm"}:
             text=path.read_text(encoding="utf-8",errors="replace")
             if any(marker in text for marker in CHALLENGE_MARKERS): errors.append(f"{tag}: challenge page marker in snapshot")
-    for rel in ("terms.tsv","untranslated_terms.tsv"):
+    for rel in ("translated_terms_zh.tsv","untranslated_terms_zh.tsv"):
         path=root/rel
         if not path.is_file(): errors.append(f"{rel}: missing file"); continue
         with path.open(encoding="utf-8-sig",newline="") as f:
             reader=csv.DictReader(f,delimiter="\t")
-            if not reader.fieldnames or "reference" not in reader.fieldnames: errors.append(f"{rel}: missing reference column"); continue
+            refcol = "references" if reader.fieldnames and "references" in reader.fieldnames else "reference"
+            if not reader.fieldnames or refcol not in reader.fieldnames: errors.append(f"{rel}: missing references column"); continue
             for line,row in enumerate(reader,2):
                 seen_translated=False
-                for sid,marked in _references(row.get("reference","")):
+                for sid,marked in _references(row.get(refcol,"")):
                     source=sources.get(sid)
                     if not source: errors.append(f"{rel}:{line}: unknown reference {sid}"); continue
                     if source.get("content_origin") not in ELIGIBLE or source.get("quality_status")!="accepted": errors.append(f"{rel}:{line}: ineligible reference {sid}")
@@ -98,6 +100,9 @@ def validate_repository(root):
     for i,row in enumerate(candidates,2):
         if row.get("candidate_status") not in CANDIDATE_STATUSES: errors.append(f"candidate_sources.tsv:{i}: invalid candidate_status")
         if row.get("first_seen_run") not in run_by_id: errors.append(f"candidate_sources.tsv:{i}: unknown first_seen_run")
+    decision_keys=[(r.get("run_id"),r.get("source_or_candidate_id"),r.get("decision")) for r in decisions]
+    for key,count in Counter(decision_keys).items():
+        if count>1: errors.append(f"source_decisions.tsv: duplicate decision tuple {key}")
     for i,row in enumerate(decisions,2):
         if row.get("run_id") not in run_by_id: errors.append(f"source_decisions.tsv:{i}: unknown run_id")
         if row.get("source_or_candidate_id") not in source_or_candidate: errors.append(f"source_decisions.tsv:{i}: unknown source_or_candidate_id")
